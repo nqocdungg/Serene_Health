@@ -1,0 +1,283 @@
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { Header } from '../../components/layout/header/Header'
+import { Sidebar } from '../../components/layout/sidebar/Sidebar'
+import '../../components/layout/DesktopShell.css'
+import { managerSidebarConfig } from './managerSidebarConfig'
+import './ManagerDashboardPage.css'
+
+type MetricIconName = 'message' | 'clock' | 'pulse' | 'currency'
+
+const metrics: Array<{
+  label: string
+  value: string
+  delta: string
+  tone: string
+  icon: MetricIconName
+}> = [
+  {
+    label: 'Số lượt tư vấn Chatbot',
+    value: '52',
+    delta: '+11.3% so với hôm qua',
+    tone: 'blue',
+    icon: 'message',
+  },
+  {
+    label: 'Số lịch hẹn',
+    value: '37',
+    delta: '+5.2% so với hôm qua',
+    tone: 'yellow',
+    icon: 'clock',
+  },
+  {
+    label: 'Tỷ lệ chuyển sang bác sĩ',
+    value: '18%',
+    delta: '-3.1% so với hôm qua',
+    tone: 'green',
+    icon: 'pulse',
+  },
+  {
+    label: 'Doanh thu',
+    value: '56 trĐ',
+    delta: '+8.7% so với hôm qua',
+    tone: 'pink',
+    icon: 'currency',
+  },
+]
+
+const consultationData = [
+  { time: '6 SA', consultations: 52 },
+  { time: '7 SA', consultations: 62 },
+  { time: '8 SA', consultations: 96 },
+  { time: '9 SA', consultations: 120 },
+  { time: '10 SA', consultations: 139 },
+  { time: '11 SA', consultations: 134 },
+  { time: '12 TR', consultations: 116 },
+  { time: '1 CH', consultations: 92 },
+  { time: '2 CH', consultations: 102 },
+  { time: '3 CH', consultations: 112 },
+  { time: '4 CH', consultations: 86 },
+  { time: '5 CH', consultations: 66 },
+]
+
+const chatbotResults = [
+  { name: 'Đã xử lý', value: 64, color: '#8dc1ff' },
+  { name: 'Chuyển bác sĩ', value: 18, color: '#adecbb' },
+  { name: 'Nguy hiểm', value: 5, color: '#fb93a3' },
+  { name: 'Không rõ', value: 13, color: '#ffdf7d' },
+]
+
+const branchData = [
+  { branch: 'Chi nhánh A', appointments: 320, chatbot: 280, doctor: 92 },
+  { branch: 'Chi nhánh B', appointments: 278, chatbot: 235, doctor: 70 },
+  { branch: 'Chi nhánh C', appointments: 442, chatbot: 382, doctor: 118 },
+]
+
+const symptoms = [
+  '#Đau đầu',
+  '#Sốt',
+  '#Ho',
+  '#Đau bụng',
+  '#Tiêu chảy',
+  '#Mệt mỏi',
+  '#Buồn nôn',
+  '#Mất ngủ',
+  '#Dị ứng',
+  '#Khó thở',
+  '#Chóng mặt',
+]
+
+function MetricIcon({ icon }: { icon: MetricIconName }) {
+  const paths = {
+    message: <path d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v6A2.5 2.5 0 0 1 16.5 15H10l-5 4V6.5Z" />,
+    clock: (
+      <>
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M12 7.5v4.8l3.2 1.9" />
+      </>
+    ),
+    pulse: <path d="M4 13h3.5l2-6 4 11 2.3-5H20" />,
+    currency: (
+      <path d="M12 4v16M16 8.5c-.9-1-2.2-1.5-3.8-1.5-2 0-3.4 1-3.4 2.5 0 3.8 7.4 1.8 7.4 5.8 0 1.7-1.5 2.8-3.8 2.8-1.9 0-3.4-.6-4.4-1.8" />
+    ),
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      {paths[icon]}
+    </svg>
+  )
+}
+
+function metricFormatter(value: number | string, name: string) {
+  const labels: Record<string, string> = {
+    consultations: 'Lượt tư vấn',
+    appointments: 'Lịch hẹn',
+    chatbot: 'Ca tư vấn Chatbot',
+    doctor: 'Ca tư vấn Bác sĩ',
+  }
+
+  return [`${value} lượt`, labels[name] ?? name]
+}
+
+export function ManagerDashboardPage() {
+  return (
+    <div className="desktop-shell-page manager-dashboard-page">
+      <Sidebar config={managerSidebarConfig} />
+      <Header profileRole={managerSidebarConfig.profileRole} />
+      <main className="desktop-shell-main manager-dashboard-main" aria-label="Nội dung chính">
+        <section className="manager-dashboard-content">
+          <div className="dashboard-heading-row">
+            <div>
+              <h1>Dashboard</h1>
+              <p>Trang xem thống kê dữ liệu theo thời gian thực của hệ thống Chatbot.</p>
+            </div>
+            <button className="date-filter-button" type="button">
+              <svg className="date-filter-menu-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 7h14M5 12h10M5 17h14" />
+              </svg>
+              <span>Hôm nay</span>
+              <svg className="date-filter-chevron" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="metrics-grid">
+            {metrics.map((metric) => (
+              <article className="metric-card" key={metric.label}>
+                <div className={`metric-icon metric-icon-${metric.tone}`}>
+                  <MetricIcon icon={metric.icon} />
+                </div>
+                <div>
+                  <p>{metric.label}</p>
+                  <strong>{metric.value}</strong>
+                  <span>{metric.delta}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="dashboard-grid">
+            <section className="dashboard-card line-chart-card">
+              <h2>Lượt tư vấn ChatBot theo từng khung giờ</h2>
+              <div className="chart-frame">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={consultationData} margin={{ top: 12, right: 18, left: -18, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="consultationFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#8dc1ff" stopOpacity={0.32} />
+                        <stop offset="100%" stopColor="#8dc1ff" stopOpacity={0.04} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke="#d8d8d8" strokeDasharray="3 4" vertical={false} />
+                    <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#666' }} />
+                    <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#666' }} ticks={[0, 35, 70, 105, 140]} />
+                    <Tooltip
+                      cursor={{ stroke: '#8dc1ff', strokeWidth: 1 }}
+                      formatter={(value, name) => metricFormatter(value as number | string, name as string)}
+                      labelFormatter={(label) => `Khung giờ: ${label}`}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="consultations"
+                      name="Lượt tư vấn"
+                      stroke="#4a93ff"
+                      strokeWidth={2}
+                      fill="url(#consultationFill)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+
+            <section className="dashboard-card result-card">
+              <h2>Kết quả xử lý chatbot</h2>
+              <div className="result-card-body">
+                <div className="donut-frame">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chatbotResults}
+                        dataKey="value"
+                        innerRadius={47}
+                        outerRadius={72}
+                        paddingAngle={4}
+                        stroke="#fff"
+                        strokeWidth={4}
+                      >
+                        {chatbotResults.map((entry) => (
+                          <Cell fill={entry.color} key={entry.name} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="result-legend">
+                  {chatbotResults.map((item) => (
+                    <div className="legend-item" key={item.name}>
+                      <span style={{ backgroundColor: item.color }} />
+                      <p>{item.name}</p>
+                      <strong>{item.value}%</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="dashboard-card branch-card">
+              <h2>Số lịch hẹn / tư vấn theo chi nhánh</h2>
+              <div className="branch-chart-frame">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={branchData} margin={{ top: 8, right: 20, left: -10, bottom: 10 }} barGap={4}>
+                    <CartesianGrid stroke="#d8d8d8" strokeDasharray="3 4" vertical={false} />
+                    <XAxis dataKey="branch" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#666' }} />
+                    <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#666' }} ticks={[0, 150, 300, 450, 600]} />
+                    <Tooltip
+                      formatter={(value, name) => metricFormatter(value as number | string, name as string)}
+                      labelFormatter={(label) => `Chi nhánh: ${label}`}
+                    />
+                    <Bar dataKey="appointments" name="Lịch hẹn" fill="#8dc1ff" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="chatbot" name="Ca tư vấn Chatbot" fill="#ffdf7d" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="doctor" name="Ca tư vấn Bác sĩ" fill="#adecbb" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="branch-legend">
+                <span className="legend-dot appointment" />
+                Lịch hẹn
+                <span className="legend-dot chatbot" />
+                Ca tư vấn Chatbot
+                <span className="legend-dot doctor" />
+                Ca tư vấn Bác sĩ
+              </div>
+            </section>
+
+            <section className="dashboard-card symptoms-card">
+              <h2>Các triệu chứng phổ biến</h2>
+              <div className="symptom-tags">
+                {symptoms.map((symptom) => (
+                  <span key={symptom}>{symptom}</span>
+                ))}
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  )
+}
+
