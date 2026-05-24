@@ -18,10 +18,22 @@ npm install
 npm run dev
 ```
 
+Frontend chạy mặc định tại:
+
+```txt
+http://localhost:5173
+```
+
 Hoặc chạy từ root:
 
 ```bash
 npm run dev:web
+```
+
+Khi chạy từ root, frontend vẫn dùng cổng mặc định:
+
+```txt
+http://localhost:5173
 ```
 
 ## Build frontend
