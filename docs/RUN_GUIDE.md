@@ -61,3 +61,7 @@ npm install
 npm run dev
 ```
 
+## link màn hình role doctor
+```bash
+http://localhost:5173/#doctor
+```
