@@ -294,12 +294,12 @@
 }
 
 .action-btn {
-  background: #FFFFFF;
-  border: 1px solid #DCEBFF;
-  color: #3B82F6;
-  padding: 5px 14px;
-  border-radius: 8px;
-  font-size: 11.5px;
+  background: #8dc1ff;
+  border: none;
+  color: #FFFFFF;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -308,7 +308,6 @@
 .action-btn:hover {
   background: #3B82F6;
   color: #FFFFFF;
-  border-color: #3B82F6;
 }
 
 /* Message List Row */
@@ -427,13 +426,13 @@
   color: #FFFFFF;
 }
 
-.calendar-grid {
+.dashboard-calendar-grid {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.calendar-headers {
+.dashboard-calendar-headers {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
@@ -444,20 +443,23 @@
   padding-bottom: 8px;
 }
 
-.calendar-days {
+.dashboard-calendar-days {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.calendar-row {
+.dashboard-calendar-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
 }
 
 .day-cell {
+  width: 38px;
   height: 38px;
+  aspect-ratio: 1;
+  margin: 4px auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -465,7 +467,7 @@
   font-size: 13px;
   font-weight: 600;
   color: #244A6B;
-  border-radius: 8px;
+  border-radius: 12px;
   position: relative;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -473,8 +475,6 @@
   border: none;
   font-family: inherit;
   padding: 0;
-  margin: 0;
-  width: 100%;
 }
 
 .day-cell:hover:not(.empty):not(.active) {

@@ -87,6 +87,7 @@ export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) 
     }
 
     const activeDay = Math.min(selectedDay, totalDays)
+    const dotDays = [6, 8, 9, 10, 13, 15, 16, 20, 22, 23, 27, 29, 30]
 
     for (let day = 1; day <= totalDays; day++) {
       const dateObj = new Date(year, month - 1, day)
@@ -95,9 +96,8 @@ export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) 
       // Workday: Mon to Fri (1 to 5)
       const isWorkday = dayOfWeek >= 1 && dayOfWeek <= 5
 
-      // Appointments dot: Mon to Thu (1 to 4) have a dot, or random days
-      // Let's make it fully custom based on month & day so it looks natural and distinct for each month!
-      const hasAppointment = isWorkday && ((day * month) % 7 !== 0)
+      // Appointments dot matches mockup exactly for May (month 5)
+      const hasAppointment = month === 5 ? dotDays.includes(day) : isWorkday && ((day * month) % 7 !== 0)
 
       currentRow.push({
         day,
@@ -127,10 +127,10 @@ export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) 
 
   // Dynamic metrics computed based on the selected month AND the filter
   const filterMultiplier = selectedFilter === 'Ngày mai' ? 1.5 : selectedFilter === 'Tuần này' ? 5 : selectedFilter === 'Tháng này' ? 20 : 1
-  const appointmentsCount = Math.floor((12 + (selectedMonth % 3) * 4) * filterMultiplier)
-  const pendingCount = Math.floor((6 + (selectedMonth % 2) * 2) * filterMultiplier)
-  const processingCount = Math.floor((4 + (selectedMonth % 4)) * filterMultiplier)
-  const completedCount = Math.floor((5 + (selectedMonth % 3) * 2) * filterMultiplier)
+  const appointmentsCount = Math.floor((12 + (selectedMonth - 5) * 2) * filterMultiplier)
+  const pendingCount = Math.floor((8 + (selectedMonth - 5)) * filterMultiplier)
+  const processingCount = Math.floor((5 + Math.floor((selectedMonth - 5) / 2)) * filterMultiplier)
+  const completedCount = Math.floor((5 + Math.floor((selectedMonth - 5) / 3)) * filterMultiplier)
 
   return (
     <div className="figma-dashboard-tab">
@@ -296,8 +296,8 @@ export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) 
                 )}
               </div>
             </div>
-            <div className="calendar-grid">
-              <div className="calendar-headers">
+            <div className="dashboard-calendar-grid">
+              <div className="dashboard-calendar-headers">
                 <span>CN</span>
                 <span>T2</span>
                 <span>T3</span>
@@ -306,9 +306,9 @@ export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) 
                 <span>T6</span>
                 <span>T7</span>
               </div>
-              <div className="calendar-days">
+              <div className="dashboard-calendar-days">
                 {calendarRows.map((row, rIdx) => (
-                  <div className="calendar-row" key={rIdx}>
+                  <div className="dashboard-calendar-row" key={rIdx}>
                     {row.map((cell, cIdx) => {
                       if (!cell) return <span className="day-cell empty" key={cIdx} />
                       
