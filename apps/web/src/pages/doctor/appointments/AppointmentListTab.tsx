@@ -7,9 +7,17 @@ const appointments = [
   { id: '4', patient: 'Trần Văn Tú', time: '09:00 - 09:30', date: '25/05/2026', type: 'Khám trực tiếp', reason: 'Đau mỏi vai gáy', status: 'Đã khám' }
 ]
 
-export function AppointmentListTab() {
+export function AppointmentListTab({ onBackToDashboard }: { onBackToDashboard?: () => void }) {
   return (
     <div className="appointment-list-tab-content">
+      {onBackToDashboard && (
+        <button className="back-to-dashboard-btn" title="Quay lại Dashboard" onClick={onBackToDashboard}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px' }}>
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+        </button>
+      )}
       <div className="tab-header-row">
         <div>
           <h1>Lịch hẹn khám tại phòng khám</h1>

@@ -64,7 +64,7 @@ const initialChats: ChatItem[] = [
   },
 ]
 
-export function LiveConsultationTab() {
+export function LiveConsultationTab({ onBackToDashboard }: { onBackToDashboard?: () => void }) {
   const [chats, setChats] = useState<ChatItem[]>(initialChats)
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
   const [inputMessage, setInputMessage] = useState('')
@@ -130,6 +130,14 @@ export function LiveConsultationTab() {
       {/* Left Pane: Chat List (Hidden in active chat mode) */}
       {!isChatActiveMode && (
         <div className="consultation-sidebar-pane">
+          {onBackToDashboard && (
+            <button className="back-to-dashboard-btn-sidebar" title="Quay lại Dashboard" onClick={onBackToDashboard}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px' }}>
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+            </button>
+          )}
           <h2 className="consultation-title">Danh sách tư vấn</h2>
           <div className="consultation-list">
             {chats.map((chat) => {
@@ -455,13 +463,13 @@ export function LiveConsultationTab() {
               <h3 className="month-indicator">Tháng 5, 2026</h3>
               
               {/* Calendar Grid */}
-              <div className="calendar-grid">
+              <div className="modal-calendar-grid">
                 {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map(d => (
-                  <div key={d} className="calendar-day-header">{d}</div>
+                  <div key={d} className="modal-calendar-day-header">{d}</div>
                 ))}
                 {/* Pad empty days for May 2026 (Starts on Friday, which is index 5) */}
                 {Array(5).fill(null).map((_, i) => (
-                  <div key={`empty-${i}`} className="calendar-day empty"></div>
+                  <div key={`empty-${i}`} className="modal-calendar-day empty"></div>
                 ))}
                 {/* Days 1 to 30 */}
                 {Array(30).fill(null).map((_, i) => {
@@ -473,7 +481,7 @@ export function LiveConsultationTab() {
                   return (
                     <button 
                       key={`day-${day}`}
-                      className={`calendar-day ${isAvailable ? 'available' : 'disabled'} ${isSelected ? 'selected' : ''}`}
+                      className={`modal-calendar-day ${isAvailable ? 'available' : 'disabled'} ${isSelected ? 'selected' : ''}`}
                       disabled={!isAvailable}
                       onClick={() => setSelectedDay(day)}
                     >

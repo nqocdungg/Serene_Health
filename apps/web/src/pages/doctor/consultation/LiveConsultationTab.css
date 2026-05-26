@@ -1032,14 +1032,14 @@
 }
 
 /* Calendar Grid inside Modal */
-.calendar-grid {
+.modal-calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
   margin-bottom: 24px;
 }
 
-.calendar-day-header {
+.modal-calendar-day-header {
   font-size: 11px;
   font-weight: 700;
   color: #A0AEC0;
@@ -1047,8 +1047,11 @@
   padding: 4px 0;
 }
 
-.calendar-day {
+.modal-calendar-day {
+  width: 100%;
   aspect-ratio: 1;
+  padding: 0;
+  box-sizing: border-box;
   border: none;
   background: transparent;
   font-size: 12.5px;
@@ -1061,28 +1064,28 @@
   transition: all 0.15s ease;
 }
 
-.calendar-day.empty {
+.modal-calendar-day.empty {
   cursor: default;
   pointer-events: none;
 }
 
-.calendar-day.disabled {
+.modal-calendar-day.disabled {
   color: #CBD5E1;
   cursor: default;
   pointer-events: none;
 }
 
-.calendar-day.available {
+.modal-calendar-day.available {
   border: 1px solid #E2E8F0;
   color: #2D3748;
 }
 
-.calendar-day.available:hover {
+.modal-calendar-day.available:hover {
   background: #F1F5F9;
   border-color: #CBD5E1;
 }
 
-.calendar-day.selected {
+.modal-calendar-day.selected {
   background: #3B82F6 !important;
   color: #FFFFFF !important;
   border-color: #3B82F6 !important;

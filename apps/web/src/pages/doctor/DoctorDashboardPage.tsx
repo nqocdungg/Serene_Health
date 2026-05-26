@@ -20,17 +20,19 @@ export function DoctorDashboardPage() {
   }
 
   const renderTabContent = () => {
+    const handleBackToDashboard = () => setActiveTab('Dashboard')
+
     switch (activeTab) {
       case 'Dashboard':
         return <DashboardTab onNavigateTab={setActiveTab} />
       case 'Tư vấn trực tiếp':
-        return <LiveConsultationTab />
+        return <LiveConsultationTab onBackToDashboard={handleBackToDashboard} />
       case 'Danh sách bệnh nhân':
-        return <PatientListTab />
+        return <PatientListTab onBackToDashboard={handleBackToDashboard} />
       case 'Lịch làm việc':
-        return <SchedulePage />
+        return <SchedulePage onBackToDashboard={handleBackToDashboard} />
       case 'Lịch hẹn khám':
-        return <AppointmentListTab />
+        return <AppointmentListTab onBackToDashboard={handleBackToDashboard} />
       default:
         return <DashboardTab onNavigateTab={setActiveTab} />
     }
