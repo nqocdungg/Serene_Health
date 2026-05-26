@@ -1,10 +1,8 @@
 .figma-dashboard-tab {
   display: flex;
   flex-direction: column;
-  padding: 24px;
+  padding: 32px;
   background: #FAFAFA;
-  min-height: 100%;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Header Section */
@@ -17,10 +15,10 @@
 
 .figma-dashboard-header h1 {
   margin: 0;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: #244A6B;
-  letter-spacing: -0.5px;
+  margin: 0;
 }
 
 .figma-dashboard-header p {
@@ -29,15 +27,17 @@
   color: #718096;
 }
 
+.filter-container { position: relative; }
+
 .filter-dropdown {
   display: flex;
   align-items: center;
   gap: 8px;
   background: #DCEBFF;
   color: #244A6B;
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s ease;
@@ -49,17 +49,17 @@
 }
 
 .dropdown-filter-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.dropdown-arrow-icon {
   width: 14px;
   height: 14px;
 }
 
-.dropdown-arrow-icon {
-  width: 12px;
-  height: 12px;
-}
-
 /* Filter Dropdown Popup */
-.filter-dropdown-popup {
+/* .filter-dropdown-popup {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
@@ -74,8 +74,19 @@
   width: 150px;
   z-index: 50;
   animation: slide-down 0.15s ease-out;
-}
+} */
 
+.filter-dropdown-popup, .month-picker-popup {
+    position: absolute;
+    background: white;
+    border: 1px solid #DCEBFF;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    z-index: 100;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+}
 .filter-popup-item {
   background: none;
   border: none;
@@ -105,25 +116,10 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 
-.figma-metric-card {
-  background: #FFFFFF;
-  border: 1px solid #DCEBFF;
-  border-radius: 16px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 4px 10px rgba(220, 235, 255, 0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
 
-.figma-metric-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(220, 235, 255, 0.25);
-}
 
 .card-icon-container {
   width: 48px;
@@ -177,7 +173,7 @@
 .figma-section-card {
   background: #FFFFFF;
   border: 1px solid #DCEBFF;
-  border-radius: 20px;
+  border-radius: 24px;
   padding: 24px;
   box-shadow: 0 4px 12px rgba(220, 235, 255, 0.1);
   display: flex;
@@ -202,13 +198,11 @@
   background: none;
   border: none;
   color: #718096;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
   border-radius: 6px;
   transition: color 0.15s ease, background 0.15s ease;
 }
@@ -216,11 +210,6 @@
 .view-all-btn:hover {
   color: #244A6B;
   background: #F0F6FF;
-}
-
-.view-all-btn svg {
-  width: 10px;
-  height: 10px;
 }
 
 .list-container {
@@ -234,11 +223,51 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border: 1px solid #DCEBFF;
-  border-radius: 14px;
+  padding: 11px 16px 11px 19px; /* Khớp Figma: Top/Bottom 11, Left 19, Right 16 */
+  border: 1.7px solid #DCEBFF;  /* Khớp Figma: 1.70px */
+  border-radius: 24px;          /* Khớp Figma: 24px */
   background: #FFFFFF;
-  transition: transform 0.15s ease, background 0.15s ease;
+  margin-bottom: 12px;
+  transition: all 0.15s ease;
+}
+.patient-list-row:hover {
+  background: #F8FBFF;
+  border-color: #8DC1FF;
+  transform: translateY(-1px);
+}
+.row-left {
+  display: flex;
+  align-items: center; 
+  gap: 12px;          
+  flex: 1;            
+}
+/* .patient-list-row .avatar-placeholder {
+  width: 50px;
+  height: 50px;
+  background: #91C3FF;
+  border-radius: 50%;
+  flex-shrink: 0;  
+} */
+.meta-details {
+  display: flex;
+  flex-direction: column; 
+  gap: 4px;               
+  text-align: left;       
+}
+.meta-details h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #244A6B;
+  white-space: nowrap;   
+}
+.symptom-text {
+  flex: 1.5;
+  text-align: center;
+  font-size: 12px;
+  color: #6B7280;
+  padding: 0 20px;
+  font-weight: 400;
 }
 
 .patient-list-row:hover {
@@ -254,10 +283,10 @@
 }
 
 .avatar-placeholder {
-  width: 38px;
-  height: 38px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background: #8DC1FF;
+  background: #91C3FF;
   flex-shrink: 0;
 }
 
@@ -293,20 +322,23 @@
   text-align: center;
 }
 
-.action-btn {
-  background: #8dc1ff;
-  border: none;
-  color: #FFFFFF;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
+.action-btn-outline {
+  width: 71px;
+  padding: 6px 0;
+  border: 1px solid #91C3FF;
+  background: transparent;
+  color: #91C3FF;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
+  text-align: center;
+  flex-shrink: 0; 
 }
 
 .action-btn:hover {
-  background: #3B82F6;
+  background: #91C3FF;
   color: #FFFFFF;
 }
 
@@ -315,9 +347,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border: 1px solid #DCEBFF;
-  border-radius: 14px;
+  padding: 11px 16px 11px 19px;
+  border: 1.7px solid #DCEBFF;
+  border-radius: 24px;
+  margin-bottom: 12px;
   background: #FFFFFF;
   transition: transform 0.15s ease, background 0.15s ease;
 }
@@ -436,11 +469,9 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-size: 12px;
-  font-weight: 600;
   color: #718096;
-  border-bottom: 1px solid #F0F6FF;
-  padding-bottom: 8px;
+  font-size: 12px;
+  margin-bottom: 12px;
 }
 
 .dashboard-calendar-days {
@@ -453,6 +484,7 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
+  margin-bottom: 4px;
 }
 
 .day-cell {
@@ -484,14 +516,6 @@
 .day-cell.empty {
   cursor: default;
 }
-
-/* Lịch làm việc - Tô màu xanh nhạt hơn ngày đang chọn */
-.day-cell.workday {
-  background: #EFF6FF;
-  color: #244A6B;
-  border: 1px solid #D2E3FC;
-}
-
 .day-cell.workday:hover {
   background: #DBEAFE;
 }
@@ -520,6 +544,22 @@
 
 
 /* Upcoming Appointment Row */
+
+.appointment-mini-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #F8FAFF;
+  border-radius: 16px;
+}
+.appointment-time {
+  margin-left: auto;
+  font-weight: 400;
+  font-size: 16px;
+  color: #6A7282;
+}
+
 .appointment-list-row {
   display: flex;
   align-items: center;

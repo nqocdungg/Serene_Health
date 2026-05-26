@@ -5,9 +5,10 @@ import './CalendarMonth.css';
 interface CalendarMonthProps {
     selectedDate: string;
     onDateSelect: (date: string) => void;
+    className?: string;
 }
 
-const CalendarMonth = ({ selectedDate, onDateSelect }: CalendarMonthProps) => {
+const CalendarMonth = ({ selectedDate, onDateSelect, className }: CalendarMonthProps) => {
     const daysOfWeek = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
     const [viewDate, setViewDate] = useState(new Date(2026, 4, 1));
@@ -20,7 +21,8 @@ const CalendarMonth = ({ selectedDate, onDateSelect }: CalendarMonthProps) => {
     const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
     return (
-        <div className="calendar-container">
+        <div className={`calendar-container ${className || ''}`}>
+
             <div className="calendar-header">
                 <h3>Lịch làm việc tháng</h3>
                 <select

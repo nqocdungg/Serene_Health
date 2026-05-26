@@ -61,3 +61,12 @@
     height: 60px;
     border: 1px solid transparent; 
 }
+/* khi dùng ở dashboard, cần bỏ border và padding để đồng bộ với style của dashboard */
+.calendar-container.dashboard-calendar {
+    border: none;
+    padding: 0;
+    background: transparent;
+}
+.dashboard-version .calendar-day {
+    height: 45px;
+}
