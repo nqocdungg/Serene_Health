@@ -2,6 +2,13 @@ export interface Patient {
   name: string
   id: string
   time: string
+  fullName?: string
+  gender?: 'Nam' | 'Nữ'
+  age?: number
+  phone?: string
+  examType?: 'Tư vấn' | 'Khám trực tiếp' | 'Cả hai'
+  status?: 'waiting' | 'completed' | 'in-progress' | 'priority'
+  avatarColor?: string
 }
 
 export interface Shift {
