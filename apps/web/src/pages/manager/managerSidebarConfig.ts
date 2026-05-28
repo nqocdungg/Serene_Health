@@ -14,15 +14,15 @@ export const managerSidebarConfig: SidebarConfig = {
         { label: 'Quản lý bệnh nhân', icon: 'users' },
       ],
     },
-    {
-      title: 'Vận hành phòng khám',
-      items: [
-        { label: 'Lịch làm việc', icon: 'clock' },
-        { label: 'Lịch hẹn khám', icon: 'calendar' },
-        { label: 'Chi nhánh', icon: 'building' },
-        { label: 'Danh mục dịch vụ', icon: 'list' },
-      ],
-    },
+    // {
+    //   title: 'Vận hành phòng khám',
+    //   items: [
+    //     { label: 'Lịch làm việc', icon: 'clock' },
+    //     { label: 'Lịch hẹn khám', icon: 'calendar' },
+    //     { label: 'Chi nhánh', icon: 'building' },
+    //     { label: 'Danh mục dịch vụ', icon: 'list' },
+    //   ],
+    // },
     {
       title: 'Chatbot & AI',
       items: [{ label: 'Giám sát Chatbot', icon: 'bot', href: '/manager/chatbot-monitor' }],
