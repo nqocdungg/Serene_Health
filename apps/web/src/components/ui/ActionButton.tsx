@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import './ActionButton.css'
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost'
@@ -9,6 +9,7 @@ type PrimaryButtonProps = {
   variant?: ButtonVariant
   disabled?: boolean
   onClick?: () => void
+  style?: CSSProperties
 }
 
 type IconButtonProps = {
@@ -16,6 +17,7 @@ type IconButtonProps = {
   children: ReactNode
   variant?: ButtonVariant
   onClick?: () => void
+  style?: CSSProperties
 }
 
 export function PrimaryButton({
@@ -24,17 +26,18 @@ export function PrimaryButton({
   variant = 'primary',
   disabled,
   onClick,
+  style,
 }: PrimaryButtonProps) {
   return (
-    <button className={`ui-button ui-button-${variant}`} type={type} disabled={disabled} onClick={onClick}>
+    <button className={`ui-button ui-button-${variant}`} type={type} disabled={disabled} onClick={onClick} style={style}>
       {children}
     </button>
   )
 }
 
-export function IconButton({ label, children, variant = 'secondary', onClick }: IconButtonProps) {
+export function IconButton({ label, children, variant = 'secondary', onClick, style }: IconButtonProps) {
   return (
-    <button className={`ui-icon-button ui-button-${variant}`} type="button" aria-label={label} title={label} onClick={onClick}>
+    <button className={`ui-icon-button ui-button-${variant}`} type="button" aria-label={label} title={label} onClick={onClick} style={style}>
       {children}
     </button>
   )

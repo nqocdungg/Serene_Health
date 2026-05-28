@@ -18,27 +18,41 @@ const ChevronIcon = () => (
   </svg>
 );
 
-export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) => void }) {
+export function DashboardTab({ 
+  onNavigateTab,
+  onViewPatientProfile,
+  onViewChatMessage
+}: { 
+  onNavigateTab?: (tab: string) => void;
+  onViewPatientProfile?: (patientId: string) => void;
+  onViewChatMessage?: (chatId: string) => void;
+}) {
   const [selectedMonth, setSelectedMonth] = useState<number>(5)
   const [selectedDay, setSelectedDay] = useState<number>(10)
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState<boolean>(false)
-  const [selectedDate, setSelectedDate] = useState('2026-05-10');
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  });
 
   // States for Date Filter (Hôm nay, Ngày mai, ...)
   const [selectedFilter, setSelectedFilter] = useState<string>('Hôm nay')
   const [isFilterPickerOpen, setIsFilterPickerOpen] = useState<boolean>(false)
 
-  const filterOptions = ['Hôm nay', 'Ngày mai', 'Tuần này', 'Tháng này']
+  const filterOptions = ['Hôm nay', 'Tuần này', 'Tháng này']
 
   const patients = [
-    { name: 'Nguyễn Văn A', age: 45, time: '2 giờ trước', symptoms: 'Sốt, đau đầu, ho' },
-    { name: 'Trần Thị B', age: 36, time: '5 giờ trước', symptoms: 'Đau bụng, buồn nôn' },
-    { name: 'Lê Văn C', age: 58, time: '1 ngày trước', symptoms: 'Đau ngực, khó thở' },
+    { id: '1', name: 'Nguyễn Văn A', age: 45, time: '2 giờ trước', symptoms: 'Sốt, đau đầu, ho' },
+    { id: '2', name: 'Trần Thị B', age: 36, time: '5 giờ trước', symptoms: 'Đau bụng, buồn nôn' },
+    { id: '3', name: 'Lê Văn C', age: 58, time: '1 ngày trước', symptoms: 'Đau ngực, khó thở' },
   ]
 
   const messages = [
-    { name: 'Nguyễn Văn A', text: 'Bác sĩ ơi, dạo này tôi hay thấy chóng mặt và suy ...', time: '09:36' },
-    { name: 'Nguyễn Thị N', text: 'Xin chào bác sĩ, tôi đang gặp tình trạng đau đầu...', time: '09:36' },
+    { id: '1', name: 'Nguyễn Văn A', text: 'Bác sĩ ơi, dạo này tôi hay thấy chóng mặt và suy ...', time: '09:36' },
+    { id: '4', name: 'Nguyễn Thị N', text: 'Xin chào bác sĩ, tôi đang gặp tình trạng đau đầu...', time: '09:36' },
   ]
   const icons = {
     pulse: (
@@ -90,11 +104,18 @@ export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) 
   const calendarRows = getCalendarRows(selectedMonth)
 
   // Dynamic metrics computed based on the selected month AND the filter
-  const filterMultiplier = selectedFilter === 'Ngày mai' ? 1.5 : selectedFilter === 'Tuần này' ? 5 : selectedFilter === 'Tháng này' ? 20 : 1
+  const filterMultiplier = selectedFilter === 'Tuần này' ? 5 : selectedFilter === 'Tháng này' ? 20 : 1
   const appointmentsCount = Math.floor((12 + (selectedMonth - 5) * 2) * filterMultiplier)
   const pendingCount = Math.floor((8 + (selectedMonth - 5)) * filterMultiplier)
   const processingCount = Math.floor((5 + Math.floor((selectedMonth - 5) / 2)) * filterMultiplier)
   const completedCount = Math.floor((5 + Math.floor((selectedMonth - 5) / 3)) * filterMultiplier)
+
+  const getDeltaText = (baseDelta: string) => {
+    if (selectedFilter === 'Hôm nay') return `${baseDelta} so với hôm qua`;
+    if (selectedFilter === 'Tuần này') return `${baseDelta} so với tuần trước`;
+    if (selectedFilter === 'Tháng này') return `${baseDelta} so với tháng trước`;
+    return baseDelta;
+  }
 
   return (
     <div className="figma-dashboard-tab">
@@ -112,10 +133,10 @@ export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) 
       </header>
 
       <section className="figma-metrics-row">
-        <MetricCard label="Tổng số lịch hẹn" value={12} delta="+2%" icon={icons.pulse} iconClassName="metric-icon-blue" />
-        <MetricCard label="Ca chờ tư vấn" value={8} delta="-1" icon={icons.clock} iconClassName="metric-icon-yellow" />
-        <MetricCard label="Ca đang xử lý" value={5} delta="+0" icon={icons.message} iconClassName="metric-icon-pink" />
-        <MetricCard label="Ca hoàn thành" value={5} delta="+12%" icon={icons.star} iconClassName="metric-icon-green" />
+        <MetricCard label="Tổng số lịch hẹn" value={appointmentsCount} delta={getDeltaText("+2%")} icon={icons.pulse} iconClassName="metric-icon-blue" />
+        <MetricCard label="Ca chờ tư vấn" value={pendingCount} delta={getDeltaText("-1")} icon={icons.clock} iconClassName="metric-icon-yellow" />
+        <MetricCard label="Ca đang xử lý" value={processingCount} delta={getDeltaText("+0")} icon={icons.message} iconClassName="metric-icon-pink" />
+        <MetricCard label="Ca hoàn thành" value={completedCount} delta={getDeltaText("+12%")} icon={icons.star} iconClassName="metric-icon-green" />
       </section>
 
       <div className="figma-dashboard-grid">
@@ -130,14 +151,24 @@ export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) 
               {patients.map((p, idx) => (
                 <div className="patient-list-row" key={idx}>
                   <div className="row-left">
-                    <div className="avatar-placeholder" />
+                    <div className="avatar-placeholder" style={{ display: 'grid', placeItems: 'center', backgroundColor: '#E6EFFE', color: '#244a6b', border: '1px solid rgba(36, 74, 107, 0.12)' }}>
+                      <svg viewBox="0 0 24 24" style={{ width: '58%', height: '58%', fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' }}>
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+                      </svg>
+                    </div>
                     <div className="meta-details">
                       <h3>{p.name} • {p.age} tuổi</h3>
                       <span className="time-sub">{p.time}</span>
                     </div>
                   </div>
                   <span className="symptom-text">{p.symptoms}</span>
-                  <button className="action-btn-outline" onClick={() => onNavigateTab?.('Tư vấn trực tiếp')}>Xem ca</button>
+                  <button 
+                    className="action-btn-outline" 
+                    onClick={() => onViewPatientProfile ? onViewPatientProfile(p.id) : onNavigateTab?.('Tư vấn trực tiếp')}
+                  >
+                    Xem ca
+                  </button>
                 </div>
               ))}
             </div>
@@ -151,15 +182,26 @@ export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) 
             </div>
             <div className="list-container">
               {messages.map((m, idx) => (
-                <div className="message-list-row" key={idx}>
+                <div 
+                  className="message-list-row" 
+                  key={idx}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => onViewChatMessage ? onViewChatMessage(m.id) : onNavigateTab?.('Tư vấn trực tiếp')}
+                >
                   <div className="row-left">
-                    <div className="avatar-placeholder" />
+                    <div className="avatar-placeholder" style={{ display: 'grid', placeItems: 'center', backgroundColor: '#E6EFFE', color: '#244a6b', border: '1px solid rgba(36, 74, 107, 0.12)' }}>
+                      <svg viewBox="0 0 24 24" style={{ width: '58%', height: '58%', fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' }}>
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+                      </svg>
+                    </div>
                     <div className="meta-details">
                       <h3>{m.name}</h3>
                       <p className="message-preview-text">{m.text}</p>
                     </div>
                   </div>
-                  <span className="message-time-text">{m.time}</span>
+                  <span className="message-time-text" style={{ marginRight: '16px' }}>{m.time}</span>
+                  <button className="action-btn-outline">Xem</button>
                 </div>
               ))}
             </div>
@@ -181,7 +223,12 @@ export function DashboardTab({ onNavigateTab }: { onNavigateTab?: (tab: string) 
                 <button className="view-all-btn" onClick={() => onNavigateTab?.('Lịch hẹn khám')}>Xem tất cả {ChevronIcon()}</button>
               </div>
               <div className="appointment-mini-card">
-                <div className="avatar-placeholder" />
+                <div className="avatar-placeholder" style={{ display: 'grid', placeItems: 'center', backgroundColor: '#E6EFFE', color: '#244a6b', border: '1px solid rgba(36, 74, 107, 0.12)' }}>
+                  <svg viewBox="0 0 24 24" style={{ width: '58%', height: '58%', fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' }}>
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+                  </svg>
+                </div>
                 <div className="meta-details">
                   <h3>Phạm Văn X</h3>
                   <span className="code-sub">Mã BN: #12346</span>

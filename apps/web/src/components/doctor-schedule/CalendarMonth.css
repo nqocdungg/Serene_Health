@@ -50,21 +50,26 @@
   font-size: 14px;
   background: white;
 }
-.calendar-day.selected {
-  background: #91C3FF;
-  color: #101828;
-  border-color: #91C3FF;
+.calendar-day.has-schedule {
+  background: #EFF6FF;
+  color: #244a6b;
+  border-color: #DCEBFF;
 }
-.calendar-day.work-day {
-  background: #F3F6FF;
-  color: #101828;     
+/* .calendar-day.today styling removed to avoid bold borders on non-selected today */
+.calendar-day.selected {
+  background: #82B1FF !important;
+  color: #244A6B !important;
+  border-color: #82B1FF !important;
+  font-weight: 700;
+}
+.calendar-day.selected .day-number {
+  color: #244A6B !important;
+}
+.calendar-day.selected .event-dot {
+  background: #244A6B !important;
 }
 .calendar-day.weekend {
-  background: white;
   color: #A3B8CE;
-}
-.calendar-day.has-event {
-  color: #101828;
 }
 .event-dot {
   width: 6px;

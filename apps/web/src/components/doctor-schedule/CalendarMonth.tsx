@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SCHEDULE_DATA } from '../../data/scheduleData';
 import { FilterSelect } from '../ui/FilterSelect';
 import './CalendarMonth.css';
@@ -12,7 +12,8 @@ interface CalendarMonthProps {
 const CalendarMonth = ({ selectedDate, onDateSelect, className }: CalendarMonthProps) => {
     const daysOfWeek = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
-    const [viewDate, setViewDate] = useState(new Date(2026, 5, 1));
+    // Default to May 2026 (index 4)
+    const [viewDate, setViewDate] = useState(new Date(2026, 4, 1));
 
     const currentMonth = viewDate.getMonth();
     const currentYear = viewDate.getFullYear();
@@ -20,6 +21,21 @@ const CalendarMonth = ({ selectedDate, onDateSelect, className }: CalendarMonthP
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
     const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+    // Synchronize viewDate when selectedDate changes from outside (e.g. from tab selection or dashboard load)
+    useEffect(() => {
+        if (selectedDate) {
+            const dateParts = selectedDate.split('-');
+            if (dateParts.length === 3) {
+                const year = parseInt(dateParts[0]);
+                const month = parseInt(dateParts[1]) - 1; // Convert 1-12 to 0-11
+                const day = parseInt(dateParts[2]);
+                if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                    setViewDate(new Date(year, month, 1));
+                }
+            }
+        }
+    }, [selectedDate]);
 
     return (
         <div className={`calendar-container ${className || ''}`}>
@@ -30,7 +46,7 @@ const CalendarMonth = ({ selectedDate, onDateSelect, className }: CalendarMonthP
                     value={currentMonth.toString()}
                     options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => ({
                         label: `Tháng ${m}`,
-                        value: m.toString()
+                        value: (m - 1).toString() // 0-indexed values
                     }))}
                     onChange={(e) => setViewDate(new Date(currentYear, parseInt(e.target.value), 1))}
                 />
@@ -50,24 +66,31 @@ const CalendarMonth = ({ selectedDate, onDateSelect, className }: CalendarMonthP
                     const dateStr = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
 
                     const dayShifts = SCHEDULE_DATA[dateStr] || [];
-                    const hasEvent = dayShifts.length > 0;
+                    const hasWorkSchedule = dayShifts.length > 0;
                     const isSelected = selectedDate === dateStr;
                     const dayOfWeek = dateObj.getDay();
-                    const isWorkDay = dayOfWeek !== 0 && dayOfWeek !== 6;
-                    const hasAppointments = !!SCHEDULE_DATA[dateStr] && SCHEDULE_DATA[dateStr].length > 0;
+                    
+                    // Check if any shift on this day has patients
+                    const hasAppointments = dayShifts.some(shift => shift.patients && shift.patients.length > 0);
+
+                    const todayObj = new Date();
+                    const isToday = todayObj.getFullYear() === currentYear &&
+                                    todayObj.getMonth() === currentMonth &&
+                                    todayObj.getDate() === day;
+
                     return (
                         <div
                             key={day}
                             className={`calendar-day 
                                 ${isSelected ? 'selected' : ''} 
-                                ${isWorkDay ? 'work-day' : ''} 
-                                ${hasEvent ? 'has-event' : ''} 
+                                ${isToday ? 'today' : ''} 
+                                ${hasWorkSchedule ? 'has-schedule' : ''} 
                                 ${(dayOfWeek === 0 || dayOfWeek === 6) ? 'weekend' : ''}`
                             }
                             onClick={() => onDateSelect(dateStr)}
                         >
                             <span className="day-number">{day}</span>
-                            {hasAppointments && <div className="event-dot"></div>}
+                            {hasWorkSchedule && hasAppointments && <div className="event-dot"></div>}
                         </div>
                     );
                 })}

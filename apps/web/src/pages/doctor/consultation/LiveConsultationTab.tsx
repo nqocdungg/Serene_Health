@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import './LiveConsultationTab.css'
 
@@ -37,6 +37,22 @@ const initialChats: ChatItem[] = [
     ]
   },
   {
+    id: '4',
+    name: 'Nguyễn Thị N',
+    age: 29,
+    time: '09:36',
+    message: 'Xin chào bác sĩ, tôi đang gặp tình trạng đau...',
+    isNew: true,
+    status: 'new',
+    messages: [
+      { 
+        id: 'm1', 
+        sender: 'patient', 
+        text: 'Xin chào bác sĩ, tôi đang gặp tình trạng đau đầu nhiều ngày qua.' 
+      },
+    ]
+  },
+  {
     id: '2',
     name: 'Trần Thị B',
     age: 32,
@@ -64,9 +80,25 @@ const initialChats: ChatItem[] = [
   },
 ]
 
-export function LiveConsultationTab() {
+export function LiveConsultationTab({ 
+  onBackToDashboard,
+  onViewPatientProfile,
+  initialActiveChatId,
+  onClearActiveChat
+}: { 
+  onBackToDashboard?: () => void;
+  onViewPatientProfile?: (patientId: string) => void;
+  initialActiveChatId?: string | null;
+  onClearActiveChat?: () => void;
+}) {
   const [chats, setChats] = useState<ChatItem[]>(initialChats)
-  const [activeChatId, setActiveChatId] = useState<string | null>(null)
+  const [activeChatId, setActiveChatId] = useState<string | null>(initialActiveChatId || null)
+
+  useEffect(() => {
+    if (initialActiveChatId) {
+      setActiveChatId(initialActiveChatId)
+    }
+  }, [initialActiveChatId])
   const [inputMessage, setInputMessage] = useState('')
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -126,21 +158,35 @@ export function LiveConsultationTab() {
   }
 
   return (
-    <div className={`consultation-tab-container ${isChatActiveMode ? 'active-chat-mode' : ''}`}>
-      {/* Left Pane: Chat List (Hidden in active chat mode) */}
+    <div className={`consultation-tab-outer ${isChatActiveMode ? 'active-chat-mode' : ''}`} style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', minHeight: '0' }}>
       {!isChatActiveMode && (
-        <div className="consultation-sidebar-pane">
-          <h2 className="consultation-title">Danh sách tư vấn</h2>
-          <div className="consultation-list">
+        <header className="patient-tab-header" style={{ padding: '0 24px 0 24px', flexShrink: 0 }}>
+          <div className="tab-titles">
+            <h1>Danh sách tư vấn</h1>
+            <p>Trang theo dõi và tư vấn sức khỏe trực tuyến cho bệnh nhân.</p>
+          </div>
+        </header>
+      )}
+      <div className={`consultation-tab-container ${isChatActiveMode ? 'active-chat-mode' : ''}`} style={{ flex: 1, minHeight: 0, marginTop: !isChatActiveMode ? '16px' : 0 }}>
+        {/* Left Pane: Chat List (Hidden in active chat mode) */}
+        {!isChatActiveMode && (
+          <div className="consultation-sidebar-pane">
+            <h2 className="consultation-title" style={{ display: 'none' }}>Danh sách tư vấn</h2>
+            <div className="consultation-list">
             {chats.map((chat) => {
               const isActive = chat.id === activeChatId
               return (
                 <div 
                   key={chat.id} 
                   className={`consultation-card ${isActive ? 'active' : ''}`}
-                  onClick={() => setActiveChatId(chat.id)}
+                  onClick={() => { setActiveChatId(chat.id); onClearActiveChat?.(); }}
                 >
-                  <div className="consultation-card-avatar"></div>
+                  <div className="consultation-card-avatar" style={{ display: 'grid', placeItems: 'center', backgroundColor: '#E6EFFE', color: '#244a6b', border: '1px solid rgba(36, 74, 107, 0.12)' }}>
+                    <svg viewBox="0 0 24 24" style={{ width: '58%', height: '58%', fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' }}>
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+                    </svg>
+                  </div>
                   <div className="consultation-card-content">
                     <div className="consultation-card-header">
                       <span className="consultation-card-name">{chat.name}</span>
@@ -191,14 +237,19 @@ export function LiveConsultationTab() {
             <div className="chat-header-card">
               <div className="chat-header-info">
                 {activeChat.status === 'active' && (
-                  <button className="back-to-list-btn" onClick={() => setActiveChatId(null)}>
+                  <button className="back-to-list-btn" onClick={() => { setActiveChatId(null); onClearActiveChat?.(); }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="19" y1="12" x2="5" y2="12" />
                       <polyline points="12 19 5 12 12 5" />
                     </svg>
                   </button>
                 )}
-                <div className="chat-header-avatar"></div>
+                <div className="chat-header-avatar" style={{ display: 'grid', placeItems: 'center', backgroundColor: '#E6EFFE', color: '#244a6b', border: '1px solid rgba(36, 74, 107, 0.12)' }}>
+                  <svg viewBox="0 0 24 24" style={{ width: '58%', height: '58%', fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' }}>
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+                  </svg>
+                </div>
                 <div className="chat-header-details">
                   <h3>{activeChat.name}</h3>
                   <p>{activeChat.age} tuổi</p>
@@ -209,7 +260,12 @@ export function LiveConsultationTab() {
                   Kết thúc tư vấn
                 </button>
               ) : activeChat.status !== 'new' ? (
-                <button className="view-record-btn">Xem hồ sơ bệnh án</button>
+                <button 
+                  className="view-record-btn"
+                  onClick={() => onViewPatientProfile?.(activeChat.id)}
+                >
+                  Xem hồ sơ bệnh án
+                </button>
               ) : null}
             </div>
 
@@ -455,13 +511,13 @@ export function LiveConsultationTab() {
               <h3 className="month-indicator">Tháng 5, 2026</h3>
               
               {/* Calendar Grid */}
-              <div className="calendar-grid">
+              <div className="modal-calendar-grid">
                 {['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'].map(d => (
-                  <div key={d} className="calendar-day-header">{d}</div>
+                  <div key={d} className="modal-calendar-day-header">{d}</div>
                 ))}
                 {/* Pad empty days for May 2026 (Starts on Friday, which is index 5) */}
                 {Array(5).fill(null).map((_, i) => (
-                  <div key={`empty-${i}`} className="calendar-day empty"></div>
+                  <div key={`empty-${i}`} className="modal-calendar-day empty"></div>
                 ))}
                 {/* Days 1 to 30 */}
                 {Array(30).fill(null).map((_, i) => {
@@ -473,7 +529,7 @@ export function LiveConsultationTab() {
                   return (
                     <button 
                       key={`day-${day}`}
-                      className={`calendar-day ${isAvailable ? 'available' : 'disabled'} ${isSelected ? 'selected' : ''}`}
+                      className={`modal-calendar-day ${isAvailable ? 'available' : 'disabled'} ${isSelected ? 'selected' : ''}`}
                       disabled={!isAvailable}
                       onClick={() => setSelectedDay(day)}
                     >
@@ -530,6 +586,7 @@ export function LiveConsultationTab() {
         </div>,
         document.body
       )}
+      </div>
     </div>
   )
 }

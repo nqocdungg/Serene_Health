@@ -5,8 +5,14 @@ import ShiftCard from '../../../components/doctor-schedule/ShiftCard';
 import { SCHEDULE_DATA, Shift } from '../../../data/scheduleData';
 import './DoctorSchedulePage.css';
 
-const SchedulePage = () => {
-  const [selectedDate, setSelectedDate] = useState('2026-05-10');
+const SchedulePage = ({ onBackToDashboard }: { onBackToDashboard?: () => void }) => {
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  });
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
   const shiftsOfDay = useMemo(() => {
     return SCHEDULE_DATA[selectedDate] || [];
@@ -18,6 +24,7 @@ const SchedulePage = () => {
 
   return (
     <div className="schedule-page">
+
       <header className="page-header">
         <h2>Lịch làm việc</h2>
         <p>Trang xem lịch làm việc của bác sĩ.</p>
@@ -34,23 +41,17 @@ const SchedulePage = () => {
         <div className="right-column">
           <div className="section-card">
             <h3>Ca làm việc trong ngày</h3>
-            {shiftsOfDay.length > 0 ? (
-              shiftsOfDay.map((shift) => (
-                <ShiftCard
-                  key={shift.id}
-                  title={shift.title}
-                  time={shift.time}
-                  count={shift.count}
-                  status={shift.status}
-                  onViewDetail={() => setSelectedShift(shift)}
-                  isSelected={selectedShift?.id === shift.id}
-                />
-              ))
-            ) : (
-              <div className="empty-day-container">
-                <p>Không có ca làm việc nào trong ngày hôm nay</p>
-              </div>
-            )}
+            {shiftsOfDay.map((shift) => (
+              <ShiftCard
+                key={shift.id}
+                title={shift.title}
+                time={shift.time}
+                count={shift.count}
+                status={shift.status}
+                onViewDetail={() => setSelectedShift(shift)}
+                isSelected={selectedShift?.id === shift.id}
+              />
+            ))}
           </div>
 
           {/* <AppointmentList /> */}
