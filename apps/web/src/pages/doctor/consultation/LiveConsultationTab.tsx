@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { ReturnButton } from '../../../components/ui/ReturnButton'
 import './LiveConsultationTab.css'
 
 type ChatMessage = {
@@ -37,6 +38,22 @@ const initialChats: ChatItem[] = [
     ]
   },
   {
+    id: '4',
+    name: 'Nguyễn Thị N',
+    age: 29,
+    time: '09:36',
+    message: 'Xin chào bác sĩ, tôi đang gặp tình trạng đau...',
+    isNew: true,
+    status: 'new',
+    messages: [
+      { 
+        id: 'm1', 
+        sender: 'patient', 
+        text: 'Xin chào bác sĩ, tôi đang gặp tình trạng đau đầu nhiều ngày qua.' 
+      },
+    ]
+  },
+  {
     id: '2',
     name: 'Trần Thị B',
     age: 32,
@@ -64,9 +81,25 @@ const initialChats: ChatItem[] = [
   },
 ]
 
-export function LiveConsultationTab({ onBackToDashboard }: { onBackToDashboard?: () => void }) {
+export function LiveConsultationTab({ 
+  onBackToDashboard,
+  onViewPatientProfile,
+  initialActiveChatId,
+  onClearActiveChat
+}: { 
+  onBackToDashboard?: () => void;
+  onViewPatientProfile?: (patientId: string) => void;
+  initialActiveChatId?: string | null;
+  onClearActiveChat?: () => void;
+}) {
   const [chats, setChats] = useState<ChatItem[]>(initialChats)
-  const [activeChatId, setActiveChatId] = useState<string | null>(null)
+  const [activeChatId, setActiveChatId] = useState<string | null>(initialActiveChatId || null)
+
+  useEffect(() => {
+    if (initialActiveChatId) {
+      setActiveChatId(initialActiveChatId)
+    }
+  }, [initialActiveChatId])
   const [inputMessage, setInputMessage] = useState('')
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -130,14 +163,6 @@ export function LiveConsultationTab({ onBackToDashboard }: { onBackToDashboard?:
       {/* Left Pane: Chat List (Hidden in active chat mode) */}
       {!isChatActiveMode && (
         <div className="consultation-sidebar-pane">
-          {onBackToDashboard && (
-            <button className="back-to-dashboard-btn-sidebar" title="Quay lại Dashboard" onClick={onBackToDashboard}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px' }}>
-                <line x1="19" y1="12" x2="5" y2="12" />
-                <polyline points="12 19 5 12 12 5" />
-              </svg>
-            </button>
-          )}
           <h2 className="consultation-title">Danh sách tư vấn</h2>
           <div className="consultation-list">
             {chats.map((chat) => {
@@ -146,9 +171,14 @@ export function LiveConsultationTab({ onBackToDashboard }: { onBackToDashboard?:
                 <div 
                   key={chat.id} 
                   className={`consultation-card ${isActive ? 'active' : ''}`}
-                  onClick={() => setActiveChatId(chat.id)}
+                  onClick={() => { setActiveChatId(chat.id); onClearActiveChat?.(); }}
                 >
-                  <div className="consultation-card-avatar"></div>
+                  <div className="consultation-card-avatar" style={{ display: 'grid', placeItems: 'center', backgroundColor: '#E6EFFE', color: '#244a6b', border: '1px solid rgba(36, 74, 107, 0.12)' }}>
+                    <svg viewBox="0 0 24 24" style={{ width: '58%', height: '58%', fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' }}>
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+                    </svg>
+                  </div>
                   <div className="consultation-card-content">
                     <div className="consultation-card-header">
                       <span className="consultation-card-name">{chat.name}</span>
@@ -199,14 +229,19 @@ export function LiveConsultationTab({ onBackToDashboard }: { onBackToDashboard?:
             <div className="chat-header-card">
               <div className="chat-header-info">
                 {activeChat.status === 'active' && (
-                  <button className="back-to-list-btn" onClick={() => setActiveChatId(null)}>
+                  <button className="back-to-list-btn" onClick={() => { setActiveChatId(null); onClearActiveChat?.(); }}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="19" y1="12" x2="5" y2="12" />
                       <polyline points="12 19 5 12 12 5" />
                     </svg>
                   </button>
                 )}
-                <div className="chat-header-avatar"></div>
+                <div className="chat-header-avatar" style={{ display: 'grid', placeItems: 'center', backgroundColor: '#E6EFFE', color: '#244a6b', border: '1px solid rgba(36, 74, 107, 0.12)' }}>
+                  <svg viewBox="0 0 24 24" style={{ width: '58%', height: '58%', fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' }}>
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4.5 21a7.5 7.5 0 0 1 15 0" />
+                  </svg>
+                </div>
                 <div className="chat-header-details">
                   <h3>{activeChat.name}</h3>
                   <p>{activeChat.age} tuổi</p>
@@ -217,7 +252,12 @@ export function LiveConsultationTab({ onBackToDashboard }: { onBackToDashboard?:
                   Kết thúc tư vấn
                 </button>
               ) : activeChat.status !== 'new' ? (
-                <button className="view-record-btn">Xem hồ sơ bệnh án</button>
+                <button 
+                  className="view-record-btn"
+                  onClick={() => onViewPatientProfile?.(activeChat.id)}
+                >
+                  Xem hồ sơ bệnh án
+                </button>
               ) : null}
             </div>
 

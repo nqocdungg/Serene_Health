@@ -1,7 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { DataTable, type DataTableColumn } from '../../../components/ui/DataTable'
+import { FilterSelect } from '../../../components/ui/FilterSelect'
+import { IconButton } from '../../../components/ui/ActionButton'
+import { MetricCard } from '../../../components/ui/MetricCard'
+import { ClockMetricIcon, MessageMetricIcon, PulseMetricIcon, UsersMetricIcon, StarMetricIcon } from '../../../components/ui/metricIcons'
+import { SearchInput } from '../../../components/ui/SearchInput'
+import { ReturnButton } from '../../../components/ui/ReturnButton'
 import './PatientListTab.css'
 
-// Clinical-grade patient mock data with EMR elements matching the wireframe exactly
 // Clinical-grade patient mock data with EMR elements matching the wireframe exactly
 const initialPatients = [
   {
@@ -106,7 +112,7 @@ const initialPatients = [
   {
     id: '1',
     code: 'BN-2026-001',
-    name: 'Nguyễn Văn E',
+    name: 'Nguyễn Văn A',
     age: 22,
     gender: 'Nam',
     status: 'Đang chờ',
@@ -171,17 +177,43 @@ const initialPatients = [
   }
 ]
 
-export function PatientListTab({ onBackToDashboard }: { onBackToDashboard?: () => void }) {
-  const [activePatientId, setActivePatientId] = useState<string | null>(null)
+const upcomingAppointments = {
+  '2': { time: '09:00 - 09:30', date: '27/05/2026', type: 'Tư vấn', reason: 'Đau ngực trái kéo dài', status: 'Đang chờ' },
+  '3': { time: '09:30 - 10:00', date: '27/05/2026', type: 'Khám trực tiếp', reason: 'Ho khan kéo dài về đêm', status: 'Đã khám' },
+  '4': { time: '10:00 - 10:30', date: '27/05/2026', type: 'Cả hai', reason: 'Tiền sử huyết áp cao', status: 'Đang khám' },
+  '1': { time: '10:30 - 11:00', date: '27/05/2026', type: 'Tư vấn', reason: 'Sốt cao co giật nhẹ', status: 'Đang chờ' },
+  '5': { time: '14:00 - 14:30', date: '27/05/2026', type: 'Khám trực tiếp', reason: 'Đau khớp gối mãn tính', status: 'Đã khám' },
+}
+
+export function PatientListTab({
+  onBackToDashboard,
+  initialActivePatientId,
+  onClearActivePatient,
+}: {
+  onBackToDashboard?: () => void
+  initialActivePatientId?: string | null
+  onClearActivePatient?: () => void
+}) {
+  const [patients, setPatients] = useState(initialPatients)
+  const [activePatientId, setActivePatientId] = useState<string | null>(initialActivePatientId || null)
   const [selectedEncounterIdx, setSelectedEncounterIdx] = useState<number>(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [serviceFilter, setServiceFilter] = useState<'Tất cả' | 'Tư vấn' | 'Khám trực tiếp' | 'Cả hai'>('Tất cả')
   const [statusFilter, setStatusFilter] = useState<'Tất cả' | 'Đang chờ' | 'Đang khám' | 'Đã kết thúc'>('Tất cả')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState<number>(1)
+  const [timeFilter, setTimeFilter] = useState<'Hôm nay' | 'Tuần này' | 'Tháng này'>('Hôm nay')
+
+  // When navigated from another tab with a pre-selected patient ID, open that patient
+  useEffect(() => {
+    if (initialActivePatientId) {
+      setActivePatientId(initialActivePatientId)
+      setSelectedEncounterIdx(0)
+    }
+  }, [initialActivePatientId])
 
   // Find active patient details
-  const activePatient = initialPatients.find(p => p.id === activePatientId)
+  const activePatient = patients.find(p => p.id === activePatientId)
 
   // Handler for toast messages
   const triggerToast = (msg: string) => {
@@ -192,15 +224,23 @@ export function PatientListTab({ onBackToDashboard }: { onBackToDashboard?: () =
   }
 
   // Calculate statistics for the 4 wireframe summary cards
+  const filterMultiplier = timeFilter === 'Tuần này' ? 5 : timeFilter === 'Tháng này' ? 20 : 1
   const stats = {
-    total: 50,      // Total patients (Tổng số bệnh nhân: 50)
-    waiting: 12,    // Waiting (Đang chờ: 12)
-    processing: 5,  // In progress (Đang xử lý: 5)
-    urgent: 2,      // High priority (Ưu tiên cao: 2)
+    total: 50 * filterMultiplier,      // Total patients (Tổng số bệnh nhân: 50)
+    waiting: 12 * filterMultiplier,    // Waiting (Đang chờ: 12)
+    processing: 5 * filterMultiplier,  // In progress (Đang xử lý: 5)
+    urgent: 2 * filterMultiplier,      // High priority (Ưu tiên cao: 2)
+  }
+
+  const getDeltaText = (baseDelta: string) => {
+    if (timeFilter === 'Hôm nay') return `${baseDelta} so với hôm qua`
+    if (timeFilter === 'Tuần này') return `${baseDelta} so với tuần trước`
+    if (timeFilter === 'Tháng này') return `${baseDelta} so với tháng trước`
+    return baseDelta
   }
 
   // Filter & Search logic
-  const filteredPatients = initialPatients.filter(p => {
+  const filteredPatients = patients.filter(p => {
     const matchesSearch =
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.phone.includes(searchTerm)
@@ -215,23 +255,26 @@ export function PatientListTab({ onBackToDashboard }: { onBackToDashboard?: () =
   if (activePatientId && activePatient) {
     const p = activePatient
     const enc = p.pastEncounters[selectedEncounterIdx] || p.pastEncounters[0]
+    const appt = upcomingAppointments[p.id as keyof typeof upcomingAppointments]
 
     return (
       <div className="emr-view-container">
         {toastMessage && <div className="emr-toast">{toastMessage}</div>}
 
         {/* Return Button at top left */}
-        <button className="back-to-dashboard-btn" title="Quay lại danh sách" type="button" onClick={() => { setActivePatientId(null); setSelectedEncounterIdx(0); }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px' }}>
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-        </button>
+        <ReturnButton
+          onClick={() => {
+            setActivePatientId(null)
+            setSelectedEncounterIdx(0)
+            onClearActivePatient?.()
+          }}
+          title="Quay lại danh sách"
+          style={{ marginBottom: '16px' }}
+        />
 
         {/* EMR Top Title Header */}
         <div className="emr-view-header-block">
-          <span className="emr-view-title">HỒ SƠ BỆNH ÁN CHI TIẾT</span>
-          <h2 className="emr-view-subtitle">Mã bệnh nhân: {p.code}</h2>
+          <h1 className="emr-view-title">HỒ SƠ BỆNH ÁN CHI TIẾT</h1>
         </div>
 
         {/* Profile Card Section */}
@@ -241,6 +284,10 @@ export function PatientListTab({ onBackToDashboard }: { onBackToDashboard?: () =
           </div>
 
           <div className="emr-profile-box">
+            <div className="profile-detail-item">
+              <span className="detail-label">Mã bệnh nhân:</span>
+              <strong className="detail-value">{p.code}</strong>
+            </div>
             <div className="profile-detail-item">
               <span className="detail-label">Họ tên & Tuổi:</span>
               <strong className="detail-value">{p.name} ({p.age} tuổi)</strong>
@@ -258,37 +305,35 @@ export function PatientListTab({ onBackToDashboard }: { onBackToDashboard?: () =
 
         <hr className="emr-divider" />
 
-        {/* Two-Column Info Cards (Vitals & History in Left Column, Visit History in Right Column) */}
+        {/* Two-Column Info Cards (Visit History in Left Column, Medical History & Allergies in Right Column) */}
         <div className="emr-two-columns">
-          {/* Column 1: Chỉ số sinh tồn & Tiền sử (Stacked Card Left) */}
+          {/* Column 1: Lịch sử lượt khám gần đây (Left) */}
           <div className="emr-col-left">
-            <article className="emr-column-card">
-              <h3 className="emr-column-title">Chỉ số sinh tồn (Vitals)</h3>
-              <div className="emr-vitals-list">
-                <div className="vital-item-row">
-                  <span>Nhiệt độ:</span>
-                  <strong>{p.vitals.temp} °C</strong>
-                </div>
-                <div className="vital-item-row">
-                  <span>Huyết áp:</span>
-                  <strong>{p.vitals.bp} mmHg</strong>
-                </div>
-                <div className="vital-item-row">
-                  <span>Nhịp tim:</span>
-                  <strong>{p.vitals.hr} bpm</strong>
-                </div>
-                <div className="vital-item-row">
-                  <span>SpO2 (Oxy máu):</span>
-                  <strong>{p.vitals.spo2} %</strong>
-                </div>
-                <div className="vital-item-row">
-                  <span>Thể trạng (BMI):</span>
-                  <strong>{p.vitals.bmi} ({p.vitals.bmi >= 25 ? 'Thừa cân' : 'Bình thường'})</strong>
-                </div>
+            <article className="emr-column-card" style={{ height: '100%' }}>
+              <h3 className="emr-column-title">Lịch sử lượt khám gần đây</h3>
+              <div className="encounter-history-list">
+                {p.pastEncounters.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`encounter-history-item ${selectedEncounterIdx === idx ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedEncounterIdx(idx)
+                    }}
+                  >
+                    <div className="history-item-meta">
+                      <span className="visit-meta">{item.date} • {item.doctor}</span>
+                      {selectedEncounterIdx === idx && <span className="active-badge">Đang chọn</span>}
+                    </div>
+                    <div className="history-item-diag">{item.diagnosis}</div>
+                  </div>
+                ))}
               </div>
             </article>
+          </div>
 
-            <article className="emr-column-card" style={{ marginTop: '20px' }}>
+          {/* Column 2: Tiền sử & Cảnh báo dị ứng (Right) */}
+          <div className="emr-col-right">
+            <article className="emr-column-card" style={{ height: '100%' }}>
               <h3 className="emr-column-title">Tiền sử & Cảnh báo dị ứng</h3>
               <div className="emr-history-allergy-content">
                 <div className="allergy-warn-box">
@@ -309,63 +354,47 @@ export function PatientListTab({ onBackToDashboard }: { onBackToDashboard?: () =
               </div>
             </article>
           </div>
-
-          {/* Column 2: Lịch sử lượt khám tương tác (Right) */}
-          <div className="emr-col-right">
-            <article className="emr-column-card" style={{ height: '100%' }}>
-              <h3 className="emr-column-title">Lịch sử lượt khám gần đây</h3>
-              <div className="encounter-history-list">
-                {p.pastEncounters.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className={`encounter-history-item ${selectedEncounterIdx === idx ? 'active' : ''}`}
-                    onClick={() => setSelectedEncounterIdx(idx)}
-                  >
-                    <div className="history-item-meta">
-                      <span className="visit-meta">{item.date} • {item.doctor}</span>
-                      {selectedEncounterIdx === idx && <span className="active-badge">Đang chọn</span>}
-                    </div>
-                    <div className="history-item-diag">{item.diagnosis}</div>
-                  </div>
-                ))}
-              </div>
-            </article>
-          </div>
         </div>
 
         {/* Vertical Records List Section (Displays detailed info of selected encounter) */}
-        <section className="emr-records-section">
-          <div className="emr-encounter-block">
-            {/* Row 1: Triệu chứng & Khám lâm sàng */}
-            <div className="emr-records-row">
-              <span className="emr-records-label">Triệu chứng & Lâm sàng</span>
-              <div className="emr-records-value-box">
-                <strong style={{ display: 'block', marginBottom: '6px' }}>Khám ngày: {enc.date} (Đảm nhận: {enc.doctor})</strong>
-                <p style={{ margin: 0 }}>{enc.symptoms}</p>
+        {enc && (
+          <section className="emr-records-section">
+            <div className="emr-encounter-block">
+              {/* Row 1: Triệu chứng & Khám lâm sàng */}
+              <div className="emr-records-row">
+                <span className="emr-records-label">Triệu chứng & Lâm sàng</span>
+                <div className="emr-records-value-box">
+                  <strong style={{ display: 'block', marginBottom: '6px' }}>Khám ngày: {enc.date} (Đảm nhận: {enc.doctor})</strong>
+                  <p style={{ margin: 0 }}>{enc.symptoms}</p>
+                </div>
               </div>
-            </div>
 
-            {/* Row 2: Chẩn đoán y khoa */}
-            <div className="emr-records-row">
-              <span className="emr-records-label">Chẩn đoán y khoa</span>
-              <div className="emr-records-value-box">
-                <strong style={{ color: '#2563EB', fontWeight: 700 }}>{enc.diagnosis}</strong>
+              {/* Row 2: Chẩn đoán y khoa */}
+              <div className="emr-records-row">
+                <span className="emr-records-label">Chẩn đoán y khoa</span>
+                <div className="emr-records-value-box">
+                  <strong style={{ color: '#2563EB', fontWeight: 700 }}>{enc.diagnosis}</strong>
+                </div>
               </div>
-            </div>
 
-            {/* Row 3: Đơn thuốc chỉ định */}
-            <div className="emr-records-row">
-              <span className="emr-records-label">Đơn thuốc kê chi tiết</span>
-              <div className="emr-records-value-box">
-                <ul style={{ margin: 0, paddingLeft: '18px' }}>
-                  {enc.prescription.map((drug, dIdx) => (
-                    <li key={dIdx} style={{ fontWeight: 600 }}>{drug}</li>
-                  ))}
-                </ul>
+              {/* Row 3: Đơn thuốc chỉ định */}
+              <div className="emr-records-row">
+                <span className="emr-records-label">Đơn thuốc kê chi tiết</span>
+                <div className="emr-records-value-box">
+                  {enc.prescription.length > 0 ? (
+                    <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                      {enc.prescription.map((drug, dIdx) => (
+                        <li key={dIdx} style={{ fontWeight: 600 }}>{drug}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="emr-no-notes">Không kê đơn thuốc</span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Function Actions Buttons at bottom right */}
         <div className="emr-buttons-group">
@@ -380,226 +409,193 @@ export function PatientListTab({ onBackToDashboard }: { onBackToDashboard?: () =
     )
   }
 
+  const columns: Array<DataTableColumn<any>> = [
+    {
+      key: 'index',
+      header: 'STT',
+      width: '60px',
+      align: 'center',
+      render: (_item, index) => index + 1,
+    },
+    {
+      key: 'patient',
+      header: 'Bệnh nhân',
+      width: '240px',
+      render: (item) => (
+        <div className="doctor-cell">
+          <div className="doctor-avatar" aria-hidden="true" style={{ background: '#E6EFFE' }}>
+            <svg viewBox="0 0 24 24" style={{ fill: '#244a6b', stroke: 'none' }}>
+              <circle cx="12" cy="8" r="4" />
+              <path d="M5 21a7 7 0 0 1 14 0v1H5v-1Z" />
+            </svg>
+          </div>
+          <div>
+            <strong>{item.name}</strong>
+            <span>{item.gender} • {item.age} tuổi</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'phone',
+      header: 'Số điện thoại',
+      width: '140px',
+      align: 'center',
+      render: (item) => item.phone
+    },
+    {
+      key: 'disease',
+      header: 'Lý do khám',
+      width: '220px',
+      render: (item) => item.disease
+    },
+    {
+      key: 'appointmentType',
+      header: 'Loại hình',
+      width: '140px',
+      align: 'center',
+      render: (item) => item.appointmentType
+    },
+    {
+      key: 'status',
+      header: 'Trạng thái',
+      width: '130px',
+      align: 'center',
+      render: (item) => (
+        <span className={`status-pill ${item.status === 'Đang chờ' ? 'waiting' : item.status === 'Đang khám' ? 'processing' : 'done'}`}>
+          {item.status}
+        </span>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Hành động',
+      width: '120px',
+      align: 'left',
+      render: (item) => (
+        <div className="table-actions">
+          <IconButton
+            label="Xem bệnh án EMR"
+            onClick={() => {
+              setActivePatientId(item.id)
+              setSelectedEncounterIdx(0)
+            }}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: '16px', height: '16px', fill: 'none', stroke: 'currentColor', strokeWidth: '2' }}>
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </IconButton>
+        </div>
+      )
+    }
+  ]
+
   // Dashboard / Table View Render (Perfect Wireframe representation + Clinically Valued Fields)
   return (
-    <div className="patient-list-tab-content">
+    <div className="patient-page-content">
       {toastMessage && <div className="emr-toast">{toastMessage}</div>}
 
-      {onBackToDashboard && (
-        <button className="back-to-dashboard-btn" title="Quay lại Dashboard" onClick={onBackToDashboard}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px' }}>
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-        </button>
-      )}
-
       {/* Wireframe Metric Stats Summary Bar */}
-      <section className="triage-stats-row">
-        {/* Card 1: Tổng số bệnh nhân */}
-        <div className="triage-stat-card">
-          <div className="icon-wrap bg-blue">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-          </div>
-          <div className="card-info-wrap">
-            <span className="label">Tổng số bệnh nhân</span>
-            <strong className="value">{stats.total}</strong>
-          </div>
-        </div>
-
-        {/* Card 2: Đang chờ */}
-        <div className="triage-stat-card">
-          <div className="icon-wrap bg-yellow">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-          </div>
-          <div className="card-info-wrap">
-            <span className="label">Đang chờ</span>
-            <strong className="value">{stats.waiting}</strong>
-          </div>
-        </div>
-
-        {/* Card 3: Đang xử lý */}
-        <div className="triage-stat-card">
-          <div className="icon-wrap bg-green">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </div>
-          <div className="card-info-wrap">
-            <span className="label">Đang xử lý</span>
-            <strong className="value">{stats.processing}</strong>
-          </div>
-        </div>
-
-        {/* Card 4: Ưu tiên cao */}
-        <div className="triage-stat-card">
-          <div className="icon-wrap bg-red">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="stat-icon">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-          </div>
-          <div className="card-info-wrap">
-            <span className="label">Ưu tiên cao</span>
-            <strong className="value">{stats.urgent}</strong>
-          </div>
-        </div>
-      </section>
-
-      {/* Title & Controls Toolbar */}
-      <div className="tab-header-row unified-controls">
+      <header className="patient-tab-header">
         <div className="tab-titles">
           <h1>Danh sách bệnh nhân</h1>
           <p>Trang quản lý hồ sơ bệnh nhân trong chuỗi phòng khám.</p>
         </div>
+        <div className="header-right-filter">
+          <FilterSelect
+            value={timeFilter}
+            options={[
+              { label: 'Hôm nay', value: 'Hôm nay' },
+              { label: 'Tuần này', value: 'Tuần này' },
+              { label: 'Tháng này', value: 'Tháng này' }
+            ]}
+            onChange={e => setTimeFilter(e.target.value as any)}
+          />
+        </div>
+      </header>
 
-        {/* Filters and Actions group */}
-        <div className="patient-controls-group">
-          {/* Smart Search */}
-          <div className="search-bar-container-smart">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="search-icon">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Tìm kiếm bệnh nhân..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-            {searchTerm && (
-              <button className="clear-search-btn" onClick={() => setSearchTerm('')} type="button">
-                &times;
-              </button>
-            )}
-          </div>
+      {/* Summary metric cards row */}
+      <div className="metrics-grid doctor-metrics-grid" style={{ marginTop: '18px' }}>
+        <MetricCard
+          label="Tổng số bệnh nhân"
+          value={stats.total}
+          delta={getDeltaText("+2.4%")}
+          icon={<UsersMetricIcon />}
+          iconClassName="metric-icon-blue"
+        />
+        <MetricCard
+          label="Đang chờ"
+          value={stats.waiting}
+          delta={getDeltaText("-2")}
+          icon={<ClockMetricIcon />}
+          iconClassName="metric-icon-yellow"
+        />
+        <MetricCard
+          label="Đang khám"
+          value={stats.processing}
+          delta={getDeltaText("+1")}
+          icon={<PulseMetricIcon />}
+          iconClassName="metric-icon-green"
+        />
+        <MetricCard
+          label="Ưu tiên cao"
+          value={stats.urgent}
+          delta={getDeltaText("+12%")}
+          icon={<MessageMetricIcon />}
+          iconClassName="metric-icon-pink"
+        />
+      </div>
 
-          {/* Service Dropdown Filter */}
+      {/* Title & Controls Toolbar */}
+      <div className="patient-toolbar">
+        <div className="patient-toolbar-filters">
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Tìm kiếm bệnh nhân..."
+          />
+
           <div className="sort-selector-container">
-            <select
-              className="sort-dropdown-smart"
+            <FilterSelect
               value={serviceFilter}
               onChange={e => setServiceFilter(e.target.value as any)}
-            >
-              <option value="Tất cả">Dịch vụ</option>
-              <option value="Tư vấn">Tư vấn</option>
-              <option value="Khám trực tiếp">Khám trực tiếp</option>
-              <option value="Cả hai">Cả hai</option>
-            </select>
+              options={[
+                { value: 'Tất cả', label: 'Dịch vụ' },
+                { value: 'Tư vấn', label: 'Tư vấn' },
+                { value: 'Khám trực tiếp', label: 'Khám trực tiếp' },
+                { value: 'Cả hai', label: 'Cả hai' },
+              ]}
+            />
           </div>
 
-          {/* Status Dropdown Filter */}
           <div className="sort-selector-container">
-            <select
-              className="sort-dropdown-smart"
+            <FilterSelect
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value as any)}
-            >
-              <option value="Tất cả">Trạng thái</option>
-              <option value="Đang chờ">Đang chờ</option>
-              <option value="Đang khám">Đang khám</option>
-              <option value="Đã kết thúc">Đã kết thúc</option>
-            </select>
+              options={[
+                { value: 'Tất cả', label: 'Trạng thái' },
+                { value: 'Đang chờ', label: 'Đang chờ' },
+                { value: 'Đang khám', label: 'Đang khám' },
+                { value: 'Đã kết thúc', label: 'Đã kết thúc' },
+              ]}
+            />
           </div>
         </div>
       </div>
 
       {/* Upgraded Table Layout of Patients */}
-      {filteredPatients.length > 0 ? (
-        <div className="patient-table-frame">
-          <table className="upgraded-patient-table">
-            <thead>
-              <tr>
-                <th className="th-stt">STT</th>
-                <th>Họ tên</th>
-                <th>Số điện thoại</th>
-                <th>Lý do khám</th>
-                <th>Loại khám</th>
-                <th>Trạng thái</th>
-                <th className="th-actions">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPatients.map((p, idx) => (
-                <tr key={p.id}>
-                  {/* Column 1: Index */}
-                  <td className="td-stt">{idx + 1}</td>
-
-                  {/* Column 2: Họ tên (avatar + name + details) */}
-                  <td className="td-patient">
-                    <div className="patient-avatar-cell-group">
-                      <div className="patient-avatar-circle-gray">
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="avatar-placeholder-icon">
-                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                        </svg>
-                      </div>
-                      <div className="patient-meta-text">
-                        <strong className="p-name">{p.name}</strong>
-                        <span className="p-sub-details">
-                          {p.gender} • {p.age} tuổi
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Column 3: Số điện thoại */}
-                  <td className="td-phone">{p.phone}</td>
-
-                  {/* Column 4: Lý do khám (Chief Complaint) */}
-                  <td className="td-complaint">{p.disease}</td>
-
-                  {/* Column 5: Loại khám */}
-                  <td className="td-type">{p.appointmentType}</td>
-
-                  {/* Column 6: Trạng thái (pill badges) */}
-                  <td className="td-status">
-                    <span className={`status-pill ${p.status === 'Đang chờ' ? 'waiting' : p.status === 'Đang khám' ? 'processing' : 'done'}`}>
-                      {p.status}
-                    </span>
-                  </td>
-
-                  {/* Column 7: Hành động (eye button) */}
-                  <td className="td-actions">
-                    <button 
-                      className="eye-action-btn" 
-                      title="Xem bệnh án EMR" 
-                      type="button" 
-                      onClick={() => { setActivePatientId(p.id); setSelectedEncounterIdx(0); }}
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="no-patients-empty-state">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="empty-icon">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <line x1="23" y1="11" x2="17" y2="11" />
-          </svg>
-          <h3>Không tìm thấy bệnh nhân nào</h3>
-          <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc các tiêu chí bộ lọc.</p>
-        </div>
-      )}
+      <div className="patient-table-frame">
+        <DataTable
+          rows={filteredPatients}
+          columns={columns}
+          getRowKey={(p) => p.id}
+          emptyState="Không tìm thấy bệnh nhân nào phù hợp."
+        />
+      </div>
 
       {/* Pagination component at bottom centered */}
-      <footer className="patient-pagination">
+      <footer className="patient-pagination" aria-label="Phân trang">
         <button className="pag-nav-btn prev" disabled={currentPage === 1} onClick={() => setCurrentPage(1)} type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="pag-icon">
             <polyline points="15 18 9 12 15 6" />
