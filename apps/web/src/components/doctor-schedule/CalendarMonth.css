@@ -50,21 +50,19 @@
   font-size: 14px;
   background: white;
 }
-.calendar-day.selected {
-  background: #91C3FF;
-  color: #101828;
-  border-color: #91C3FF;
+.calendar-day.has-schedule {
+  background: #EFF6FF;
+  color: #244a6b;
+  border-color: #DCEBFF;
 }
-.calendar-day.work-day {
-  background: #F3F6FF;
-  color: #101828;     
+.calendar-day.selected {
+  background: #79B3FA;
+  color: #244a6b;
+  border-color: #79B3FA;
+  font-weight: 600;
 }
 .calendar-day.weekend {
-  background: white;
   color: #A3B8CE;
-}
-.calendar-day.has-event {
-  color: #101828;
 }
 .event-dot {
   width: 6px;

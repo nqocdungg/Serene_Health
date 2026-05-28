@@ -3,7 +3,6 @@ import AppointmentList from '../../../components/doctor-schedule/AppointmentList
 import CalendarMonth from '../../../components/doctor-schedule/CalendarMonth';
 import ShiftCard from '../../../components/doctor-schedule/ShiftCard';
 import { SCHEDULE_DATA, Shift } from '../../../data/scheduleData';
-import { ReturnButton } from '../../../components/ui/ReturnButton';
 import './DoctorSchedulePage.css';
 
 const SchedulePage = ({ onBackToDashboard }: { onBackToDashboard?: () => void }) => {
