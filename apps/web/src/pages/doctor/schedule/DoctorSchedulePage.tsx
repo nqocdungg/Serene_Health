@@ -47,7 +47,7 @@ const SchedulePage = ({ onBackToDashboard }: { onBackToDashboard?: () => void })
                 title={shift.title}
                 time={shift.time}
                 count={shift.count}
-                status={shift.status}
+                status={shift.status || (shift.title === 'Ca sáng' ? 'Đang diễn ra' : undefined)}
                 onViewDetail={() => setSelectedShift(shift)}
                 isSelected={selectedShift?.id === shift.id}
               />
