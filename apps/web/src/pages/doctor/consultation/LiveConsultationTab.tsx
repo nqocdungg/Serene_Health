@@ -178,8 +178,12 @@ export function LiveConsultationTab({
               return (
                 <div 
                   key={chat.id} 
-                  className={`consultation-card ${isActive ? 'active' : ''}`}
-                  onClick={() => { setActiveChatId(chat.id); onClearActiveChat?.(); }}
+                  className={`consultation-card ${isActive ? 'active' : ''} ${chat.isNew ? 'unread' : ''}`}
+                  onClick={() => { 
+                    setActiveChatId(chat.id); 
+                    onClearActiveChat?.(); 
+                    setChats(prev => prev.map(c => c.id === chat.id ? { ...c, isNew: false } : c));
+                  }}
                 >
                   <div className="consultation-card-avatar" style={{ display: 'grid', placeItems: 'center', backgroundColor: '#E6EFFE', color: '#244a6b', border: '1px solid rgba(36, 74, 107, 0.12)' }}>
                     <svg viewBox="0 0 24 24" style={{ width: '58%', height: '58%', fill: 'none', stroke: 'currentColor', strokeWidth: '1.8' }}>
@@ -192,12 +196,14 @@ export function LiveConsultationTab({
                       <span className="consultation-card-name">{chat.name}</span>
                       <span className="consultation-card-time">{chat.time}</span>
                     </div>
-                    <div className="consultation-card-message">
-                      {chat.message}
+                    <div className="consultation-card-message-row">
+                      <div className="consultation-card-message">
+                        {chat.message}
+                      </div>
+                      {chat.isNew && (
+                        <span className="consultation-card-unread-dot"></span>
+                      )}
                     </div>
-                    {chat.isNew && (
-                      <div className="consultation-card-badge">Mới</div>
-                    )}
                   </div>
                 </div>
               )
