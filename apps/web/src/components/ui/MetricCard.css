@@ -1,7 +1,7 @@
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 25px;
+  gap: clamp(10px, 1.1vw, 16px);
   width: 100%;
 }
 
@@ -9,22 +9,66 @@
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  min-height: 88px;
+  min-height: clamp(58px, 7vh, 68px);
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: clamp(10px, 1vw, 14px);
   border: 1px solid #91c3ff;
-  border-radius: 24px;
+  border-radius: 16px;
   background: #fff;
-  padding: 20px;
-  box-shadow: 0 16px 34px rgba(141, 193, 255, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: clamp(10px, 1.1vw, 14px);
+  box-shadow: none;
+  transition: transform 0.2s ease, border-color 0.2s ease;
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .metric-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(141, 193, 255, 0.15);
+  transform: translateY(-2px);
+  border-color: #8dc1ff;
+  box-shadow: none;
+}
+
+.metric-icon {
+  width: clamp(36px, 3.4vw, 46px);
+  height: clamp(36px, 3.4vw, 46px);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 12px;
+}
+
+.metric-icon svg {
+  width: clamp(20px, 2vw, 24px);
+  height: clamp(20px, 2vw, 24px);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.metric-card p {
+  margin: 0;
+  color: #718096;
+  font-size: clamp(11px, 0.9vw, 13px);
+  line-height: 1.25;
+}
+
+.metric-card strong {
+  display: block;
+  margin-top: 2px;
+  color: #244a6b;
+  font-size: clamp(20px, 1.8vw, 26px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.metric-card span {
+  display: block;
+  margin-top: 3px;
+  color: #244a6b;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 @keyframes fadeInUp {
@@ -38,24 +82,6 @@
   }
 }
 
-.metric-icon {
-  width: 56px;
-  height: 56px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border-radius: 12px;
-}
-
-.metric-icon svg {
-  width: 30px;
-  height: 30px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 
 .metric-icon-blue {
   background: #dcebff;
@@ -82,29 +108,6 @@
   color: #f0627d;
 }
 
-.metric-card p {
-  margin: 0;
-  color: #718096;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.metric-card strong {
-  display: block;
-  margin-top: 2px;
-  color: #244a6b;
-  font-size: clamp(20px, 2.5vw, 36px);
-  font-weight: 800;
-  line-height: 1;
-}
-
-.metric-card span {
-  display: block;
-  margin-top: 5px;
-  color: #244a6b;
-  font-size: 11px;
-  font-weight: 700;
-}
 
 @media (max-width: 1180px) {
   .metrics-grid {

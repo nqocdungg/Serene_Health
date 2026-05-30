@@ -14,10 +14,10 @@
 }
 
 .data-table th {
-  height: 46px;
-  background: #dcebff;
+  height: 40px;
+  background: #e6effe;
   color: #244a6b;
-  padding: 12px 8px;
+  padding: 0 16px;
   font-size: 14px;
   font-weight: 700;
   text-align: center;
@@ -32,9 +32,9 @@
 }
 
 .data-table td {
-  height: 80px;
+  height: 58px;
   border-top: 0;
-  padding: 0 20px;
+  padding: 0 16px;
   font-size: 14px;
   vertical-align: middle;
 }
