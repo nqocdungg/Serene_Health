@@ -1,67 +1,96 @@
 import './Pagination.css'
 
-export type PaginationProps = {
-  currentPage: number
-  totalPages: number
-  onPageChange: (page: number) => void
+type PaginationProps = {
   className?: string
-  siblingCount?: number
+  currentPage: number
+  pageCount?: number
+  totalPages?: number
+  onPageChange: (page: number) => void
 }
 
-function getVisiblePages(currentPage: number, totalPages: number, siblingCount: number) {
-  const count = Math.min(totalPages, siblingCount)
-
-  if (totalPages <= count) {
-    return Array.from({ length: totalPages }, (_item, index) => index + 1)
+function getVisiblePages(currentPage: number, pageCount: number) {
+  if (pageCount <= 7) {
+    return Array.from({ length: pageCount }, (_item, index) => index + 1)
   }
 
-  const half = Math.floor(count / 2)
-  const start = Math.min(Math.max(1, currentPage - half), totalPages - count + 1)
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, 'ellipsis', pageCount] as const
+  }
 
-  return Array.from({ length: count }, (_item, index) => start + index)
+  if (currentPage >= pageCount - 3) {
+    return [1, 'ellipsis', pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1, pageCount] as const
+  }
+
+  return [1, 'ellipsis-start', currentPage - 1, currentPage, currentPage + 1, 'ellipsis-end', pageCount] as const
 }
 
-export function Pagination({ currentPage, totalPages, onPageChange, className = '', siblingCount = 3 }: PaginationProps) {
-  if (totalPages <= 1) {
-    return null
-  }
+function ChevronLeftIcon() {
+  return (
+    <svg className="pagination-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  )
+}
 
-  const visiblePages = getVisiblePages(currentPage, totalPages, siblingCount)
+function ChevronRightIcon() {
+  return (
+    <svg className="pagination-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  )
+}
+
+export function Pagination({
+  className,
+  currentPage,
+  pageCount: pageCountProp,
+  totalPages,
+  onPageChange,
+}: PaginationProps) {
+  const pageCount = Math.max(1, pageCountProp ?? totalPages ?? 1)
+  const visiblePages = getVisiblePages(currentPage, pageCount)
 
   return (
-    <div className={['pagination', className].filter(Boolean).join(' ')} aria-label="Phân trang">
-      <button
-        type="button"
-        disabled={currentPage === 1}
-        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-        aria-label="Trang trước"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M15.5 5 8.5 12l7 7" />
-        </svg>
-      </button>
-      {visiblePages.map((page) => (
+    <nav className={['ui-pagination', className].filter(Boolean).join(' ')} aria-label="Phân trang">
+      <div className="ui-pagination-pages">
         <button
+          className="ui-pagination-arrow"
           type="button"
-          className={page === currentPage ? 'active' : undefined}
-          key={page}
-          onClick={() => onPageChange(page)}
-          aria-label={`Trang ${page}`}
-          aria-current={page === currentPage ? 'page' : undefined}
+          disabled={currentPage === 1}
+          aria-label="Trang trước"
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         >
-          {page}
+          <ChevronLeftIcon />
         </button>
-      ))}
-      <button
-        type="button"
-        disabled={currentPage === totalPages}
-        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        aria-label="Trang sau"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m8.5 5 7 7-7 7" />
-        </svg>
-      </button>
-    </div>
+
+        {visiblePages.map((page, index) =>
+          typeof page === 'number' ? (
+            <button
+              className={page === currentPage ? 'ui-pagination-page active' : 'ui-pagination-page'}
+              type="button"
+              key={page}
+              aria-current={page === currentPage ? 'page' : undefined}
+              onClick={() => onPageChange(page)}
+            >
+              {page}
+            </button>
+          ) : (
+            <span className="ui-pagination-ellipsis" key={`${page}-${index}`} aria-hidden="true">
+              ...
+            </span>
+          ),
+        )}
+
+        <button
+          className="ui-pagination-arrow ui-pagination-arrow-next"
+          type="button"
+          disabled={currentPage === pageCount}
+          aria-label="Trang sau"
+          onClick={() => onPageChange(Math.min(pageCount, currentPage + 1))}
+        >
+          <ChevronRightIcon />
+        </button>
+      </div>
+    </nav>
   )
 }

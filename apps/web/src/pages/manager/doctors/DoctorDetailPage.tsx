@@ -1,11 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Header } from '../../../components/layout/header/Header'
 import { Sidebar } from '../../../components/layout/sidebar/Sidebar'
 import '../../../components/layout/DesktopShell.css'
 import { PrimaryButton } from '../../../components/ui/ActionButton'
-import { MetricCard } from '../../../components/ui/MetricCard'
-import { CalendarMetricIcon, CheckMetricIcon, StarMetricIcon, UsersMetricIcon } from '../../../components/ui/metricIcons'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { managerSidebarConfig } from '../managerSidebarConfig'
 import { doctorToFormValues, formatCurrency, initialDoctorFormValues } from './doctorMockData'
@@ -14,16 +12,6 @@ import { useDoctorsData } from './DoctorsDataContext'
 import type { Doctor, DoctorFormErrors, DoctorFormValues } from './doctorTypes'
 import { hasFormErrors, validateDoctorForm } from './doctorValidation'
 import './DoctorManagement.css'
-
-type DoctorTab = 'overview' | 'schedule' | 'appointments' | 'reviews' | 'performance'
-
-const tabs: Array<{ id: DoctorTab; label: string }> = [
-  { id: 'overview', label: 'Tổng quan' },
-  { id: 'schedule', label: 'Lịch làm việc' },
-  { id: 'appointments', label: 'Lịch hẹn' },
-  { id: 'reviews', label: 'Đánh giá bệnh nhân' },
-  { id: 'performance', label: 'Thống kê hiệu suất' },
-]
 
 function DoctorAvatar({ doctor }: { doctor: Doctor }) {
   return (
@@ -44,11 +32,29 @@ function StarIcon() {
   )
 }
 
-function InfoItem({ label, value }: { label: string; value: string }) {
+function InfoItem({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="doctor-info-item">
       <span>{label}</span>
       <strong>{value}</strong>
+    </div>
+  )
+}
+
+function ProfileDetailItem({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="doctor-profile-detail-item">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  )
+}
+
+function DoctorRecordRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="doctor-emr-record-row">
+      <span className="doctor-emr-record-label">{label}</span>
+      <div className="doctor-emr-record-value">{children}</div>
     </div>
   )
 }
@@ -73,96 +79,11 @@ function DetailNotFound() {
   )
 }
 
-function DoctorTabPanel({ doctor, activeTab }: { doctor: Doctor; activeTab: DoctorTab }) {
-  if (activeTab === 'schedule') {
-    return (
-      <section className="doctor-tab-panel">
-        <h2>Lịch làm việc cơ bản</h2>
-        <div className="doctor-list-panel">
-          {doctor.schedule.map((item) => (
-            <div className="doctor-list-item" key={`${item.day}-${item.time}`}>
-              <strong>{item.day}</strong>
-              <span>{item.time}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  if (activeTab === 'appointments') {
-    return (
-      <section className="doctor-tab-panel">
-        <h2>Lịch hẹn hôm nay</h2>
-        <div className="doctor-list-panel">
-          <div className="doctor-list-item">
-            <strong>08:30 - Tư vấn trực tuyến</strong>
-            <span>Trạng thái: Đã xác nhận</span>
-          </div>
-          <div className="doctor-list-item">
-            <strong>10:15 - Khám tại chi nhánh</strong>
-            <span>Trạng thái: Chờ tiếp nhận</span>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  if (activeTab === 'reviews') {
-    return (
-      <section className="doctor-tab-panel">
-        <h2>Đánh giá bệnh nhân</h2>
-        <div className="doctor-list-panel">
-          {doctor.reviews.map((review) => (
-            <div className="doctor-list-item" key={review.id}>
-              <strong>
-                {review.patientName} · {review.rating.toFixed(1)}/5
-              </strong>
-              <p>{review.comment}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  if (activeTab === 'performance') {
-    return (
-      <section className="doctor-tab-panel">
-        <h2>Thống kê hiệu suất</h2>
-        <div className="doctor-tab-grid">
-          <InfoItem label="Tổng ca tư vấn" value={doctor.totalConsultations.toLocaleString('vi-VN')} />
-          <InfoItem label="Tỉ lệ hoàn thành lịch" value={`${doctor.completionRate}%`} />
-          <InfoItem label="Điểm CSAT" value={`${doctor.csat}/5`} />
-          <InfoItem label="Đánh giá trung bình" value={`${doctor.rating.toFixed(1)}/5`} />
-        </div>
-      </section>
-    )
-  }
-
-  return (
-    <section className="doctor-tab-panel">
-      <h2>Tổng quan chuyên môn</h2>
-      <div className="doctor-tab-grid">
-        <InfoItem label="Bằng cấp" value={doctor.degree} />
-        <InfoItem label="Kinh nghiệm" value={`${doctor.yearsExperience} năm`} />
-        <InfoItem label="Giá tư vấn" value={formatCurrency(doctor.consultationFee)} />
-        <InfoItem label="Giá khám" value={formatCurrency(doctor.examinationFee)} />
-      </div>
-      <div className="doctor-list-item" style={{ marginTop: 14 }}>
-        <strong>Mô tả ngắn</strong>
-        <p>{doctor.shortBio}</p>
-      </div>
-    </section>
-  )
-}
-
 export function DoctorDetailPage() {
   const navigate = useNavigate()
   const { doctorId } = useParams()
   const { doctors, getDoctorById, updateDoctor } = useDoctorsData()
   const doctor = doctorId ? getDoctorById(doctorId) : undefined
-  const [activeTab, setActiveTab] = useState<DoctorTab>('overview')
   const [isEditing, setIsEditing] = useState(false)
   const [values, setValues] = useState<DoctorFormValues>(() => (doctor ? doctorToFormValues(doctor) : initialDoctorFormValues))
   const [errors, setErrors] = useState<DoctorFormErrors>({})
@@ -172,19 +93,6 @@ export function DoctorDetailPage() {
       setValues(doctorToFormValues(doctor))
       setErrors({})
     }
-  }, [doctor])
-
-  const quickStats = useMemo(() => {
-    if (!doctor) {
-      return []
-    }
-
-    return [
-      { label: 'Lịch hẹn hôm nay', value: doctor.appointmentsToday, icon: <CalendarMetricIcon />, iconClassName: 'metric-icon-blue' },
-      { label: 'Tổng ca tư vấn', value: doctor.totalConsultations, icon: <UsersMetricIcon />, iconClassName: 'metric-icon-green' },
-      { label: 'Tỉ lệ hoàn thành lịch', value: `${doctor.completionRate}%`, icon: <CheckMetricIcon />, iconClassName: 'metric-icon-yellow' },
-      { label: 'Điểm CSAT', value: `${doctor.csat}/5`, icon: <StarMetricIcon />, iconClassName: 'metric-icon-pink' },
-    ]
   }, [doctor])
 
   if (!doctor) {
@@ -251,63 +159,107 @@ export function DoctorDetailPage() {
             </div>
           </div>
 
-          <div className="doctor-detail-title">
-            <h1>Hồ sơ bác sĩ</h1>
-            <p>Xem thông tin tổng quan, lịch làm việc và hiệu suất chăm sóc bệnh nhân.</p>
-          </div>
-
-          <section className="doctor-detail-hero">
-            <div className="doctor-overview-card">
-              <DoctorAvatar doctor={doctor} />
-              <div className="doctor-overview-copy">
-                <h2>{doctor.fullName}</h2>
-                <p>{doctor.email}</p>
-                <p>{doctor.phone}</p>
-                <span className="doctor-rating-pill">
-                  <StarIcon />
-                  {doctor.rating.toFixed(1)}
-                </span>
-              </div>
-            </div>
-            <div className="doctor-info-grid">
-              <InfoItem label="Chi nhánh" value={doctor.branch} />
-              <InfoItem label="Chuyên khoa" value={doctor.specialty} />
-              <div className="doctor-info-item">
-                <span>Trạng thái</span>
-                <strong>
-                  <StatusBadge status={doctor.status} />
-                </strong>
-              </div>
-              <InfoItem label="Đánh giá trung bình" value={`${doctor.rating.toFixed(1)}/5`} />
-            </div>
-          </section>
-
-          <div className="metrics-grid doctor-quick-stats">
-            {quickStats.map((stat) => (
-              <MetricCard key={stat.label} label={stat.label} value={stat.value} icon={stat.icon} iconClassName={stat.iconClassName} />
-            ))}
-          </div>
-
           {isEditing ? (
-            <DoctorFormSections values={values} errors={errors} includeAccountSection={false} onChange={updateField} />
-          ) : null}
+            <section className="doctor-edit-shell">
+              <div className="doctor-detail-title">
+                <h1>Chỉnh sửa hồ sơ bác sĩ</h1>
+                <p>Cập nhật thông tin hành chính, chuyên môn, lịch làm việc và chi phí khám.</p>
+              </div>
+              <DoctorFormSections values={values} errors={errors} includeAccountSection={false} onChange={updateField} />
+            </section>
+          ) : (
+            <section className="doctor-emr-view-container">
+              <div className="doctor-emr-view-header-block">
+                <h1 className="doctor-emr-view-title">Hồ sơ bác sĩ chi tiết</h1>
+              </div>
 
-          <div className="doctor-tabs" role="tablist" aria-label="Nội dung hồ sơ bác sĩ">
-            {tabs.map((tab) => (
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === tab.id}
-                className={activeTab === tab.id ? 'active' : undefined}
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+              <section className="doctor-emr-profile-section">
+                <DoctorAvatar doctor={doctor} />
+                <div className="doctor-emr-profile-box">
+                  <ProfileDetailItem label="Mã bác sĩ" value={doctor.id} />
+                  <ProfileDetailItem label="Họ tên" value={doctor.fullName} />
+                  <ProfileDetailItem label="Liên hệ" value={`${doctor.phone} · ${doctor.email}`} />
+                  <ProfileDetailItem label="Trạng thái" value={<StatusBadge status={doctor.status} />} />
+                </div>
+              </section>
 
-          <DoctorTabPanel doctor={doctor} activeTab={activeTab} />
+              <hr className="doctor-emr-divider" />
+
+              <div className="doctor-emr-two-columns">
+                <article className="doctor-emr-column-card">
+                  <h3 className="doctor-emr-column-title">Thông tin chuyên môn</h3>
+                  <div className="doctor-tab-grid">
+                    <InfoItem label="Chuyên khoa" value={doctor.specialty} />
+                    <InfoItem label="Bằng cấp" value={doctor.degree} />
+                    <InfoItem label="Kinh nghiệm" value={`${doctor.yearsExperience} năm`} />
+                    <InfoItem label="Chi nhánh" value={doctor.branch} />
+                    <InfoItem label="Giá tư vấn" value={formatCurrency(doctor.consultationFee)} />
+                    <InfoItem label="Giá khám" value={formatCurrency(doctor.examinationFee)} />
+                  </div>
+                </article>
+
+                <article className="doctor-emr-column-card">
+                  <h3 className="doctor-emr-column-title">Lịch làm việc cơ bản</h3>
+                  <div className="doctor-emr-history-list">
+                    {doctor.schedule.map((item, index) => (
+                      <div className={index === 0 ? 'doctor-emr-history-item active' : 'doctor-emr-history-item'} key={`${item.day}-${item.time}`}>
+                        <div className="doctor-emr-history-meta">
+                          <span>{item.day}</span>
+                          {index === 0 ? <span className="doctor-emr-active-badge">Đang áp dụng</span> : null}
+                        </div>
+                        <strong>{item.time}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              </div>
+
+              <section className="doctor-emr-records-section">
+                <DoctorRecordRow label="Tổng quan chuyên môn">
+                  <p>{doctor.shortBio}</p>
+                  <span className="doctor-rating-pill">
+                    <StarIcon />
+                    Đánh giá trung bình {doctor.rating.toFixed(1)}/5
+                  </span>
+                </DoctorRecordRow>
+
+                <DoctorRecordRow label="Lịch hẹn hôm nay">
+                  <div className="doctor-list-panel">
+                    <div className="doctor-list-item">
+                      <strong>{doctor.appointmentsToday} lịch hẹn được ghi nhận trong ngày</strong>
+                      <span>08:30 - Tư vấn trực tuyến · Đã xác nhận</span>
+                    </div>
+                    <div className="doctor-list-item">
+                      <strong>10:15 - Khám tại chi nhánh</strong>
+                      <span>Trạng thái: Chờ tiếp nhận</span>
+                    </div>
+                  </div>
+                </DoctorRecordRow>
+
+                <DoctorRecordRow label="Đánh giá bệnh nhân">
+                  <div className="doctor-list-panel">
+                    {doctor.reviews.map((review) => (
+                      <div className="doctor-list-item" key={review.id}>
+                        <strong>
+                          {review.patientName} · {review.rating.toFixed(1)}/5
+                        </strong>
+                        <p>{review.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                </DoctorRecordRow>
+
+                <DoctorRecordRow label="Thống kê hiệu suất">
+                  <div className="doctor-tab-grid">
+                    <InfoItem label="Tổng ca tư vấn" value={doctor.totalConsultations.toLocaleString('vi-VN')} />
+                    <InfoItem label="Tỉ lệ hoàn thành lịch" value={`${doctor.completionRate}%`} />
+                    <InfoItem label="Điểm CSAT" value={`${doctor.csat}/5`} />
+                    <InfoItem label="Đánh giá trung bình" value={`${doctor.rating.toFixed(1)}/5`} />
+                  </div>
+                </DoctorRecordRow>
+              </section>
+            </section>
+          )}
         </section>
       </main>
     </div>

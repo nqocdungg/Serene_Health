@@ -8,6 +8,7 @@ import { FilterSelect } from '../../../components/ui/FilterSelect'
 import { IconButton, PrimaryButton } from '../../../components/ui/ActionButton'
 import { MetricCard } from '../../../components/ui/MetricCard'
 import { CheckMetricIcon, ClockMetricIcon, StarMetricIcon, UsersMetricIcon } from '../../../components/ui/metricIcons'
+import { Pagination } from '../../../components/ui/Pagination'
 import { SearchInput } from '../../../components/ui/SearchInput'
 import { StatusBadge } from '../../../components/ui/StatusBadge'
 import { managerSidebarConfig } from '../managerSidebarConfig'
@@ -16,7 +17,7 @@ import { useDoctorsData } from './DoctorsDataContext'
 import type { Doctor } from './doctorTypes'
 import './DoctorManagement.css'
 
-const doctorsPerPage = 5
+const pageSizeOptions = [5, 10, 20]
 
 function StarIcon() {
   return (
@@ -44,6 +45,7 @@ export function DoctorManagementPage() {
   const [specialty, setSpecialty] = useState('all')
   const [branch, setBranch] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
+  const [doctorsPerPage, setDoctorsPerPage] = useState(pageSizeOptions[0])
   const [deleteCandidate, setDeleteCandidate] = useState<Doctor | null>(null)
 
   const filteredDoctors = useMemo(() => {
@@ -65,25 +67,10 @@ export function DoctorManagementPage() {
 
   const pageCount = Math.max(1, Math.ceil(filteredDoctors.length / doctorsPerPage))
   const pagedDoctors = filteredDoctors.slice((currentPage - 1) * doctorsPerPage, currentPage * doctorsPerPage)
-  const visiblePages = useMemo(() => {
-    if (pageCount <= 3) {
-      return Array.from({ length: pageCount }, (_item, index) => index + 1)
-    }
-
-    if (currentPage <= 2) {
-      return [1, 2, 3]
-    }
-
-    if (currentPage >= pageCount - 1) {
-      return [pageCount - 2, pageCount - 1, pageCount]
-    }
-
-    return [currentPage - 1, currentPage, currentPage + 1]
-  }, [currentPage, pageCount])
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [branch, query, specialty])
+  }, [branch, doctorsPerPage, query, specialty])
 
   useEffect(() => {
     if (currentPage > pageCount) {
@@ -235,35 +222,37 @@ export function DoctorManagementPage() {
             </PrimaryButton>
           </div>
 
+          <div className="doctor-table-controls">
+            <label className="doctor-page-size">
+              <span>Hiển thị</span>
+
+              <select
+                value={doctorsPerPage}
+                onChange={(event) => setDoctorsPerPage(Number(event.target.value))}
+              >
+                {pageSizeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+
+              <span>dòng</span>
+            </label>
+
+            <Pagination
+              currentPage={currentPage}
+              pageCount={pageCount}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+
           <DataTable
             rows={pagedDoctors}
             columns={columns}
             getRowKey={(doctor) => doctor.id}
             emptyState="Không tìm thấy bác sĩ phù hợp."
           />
-
-          <div className="doctor-pagination" aria-label="Phân trang">
-            <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}>
-              ‹
-            </button>
-            {visiblePages.map((page) => (
-              <button
-                type="button"
-                className={page === currentPage ? 'active' : undefined}
-                key={page}
-                onClick={() => setCurrentPage(page)}
-              >
-                {page}
-              </button>
-            ))}
-            <button
-              type="button"
-              disabled={currentPage === pageCount}
-              onClick={() => setCurrentPage((page) => Math.min(pageCount, page + 1))}
-            >
-              ›
-            </button>
-          </div>
         </section>
 
         {deleteCandidate ? (
